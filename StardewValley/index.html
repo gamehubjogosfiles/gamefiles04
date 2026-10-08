@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stardew Valley</title>
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <script id="gamehub-mobile-fullscreen-first">(function(){var m=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)||matchMedia('(max-width:680px)').matches;if(!m)return;function f(){var e=document.documentElement,r=e.requestFullscreen||e.webkitRequestFullscreen;if(r)try{var x=r.call(e,{navigationUI:'hide'});if(x&&x.catch)x.catch(function(){});}catch(_){} }addEventListener('pointerdown',f,{passive:true});addEventListener('touchstart',f,{passive:true});})();</script>
+  <script>(function(){var c=['#ef4444','#f0b400','#3b82f6','#8b5cf6','#f97316','#22c55e','#ec4899'];document.documentElement.style.setProperty('--gamehub-loader-accent',c[Math.floor(Math.random()*c.length)]);})();</script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html,body{width:100%;height:100%;overflow:hidden;background:#000}
+    :root{--gamehub-loader-accent:#f0b400}
+    #loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:#000;color:#fff;font:700 15px/1.35 system-ui,sans-serif;text-align:center;z-index:30}
+    #loading.hidden{display:none}
+    #loading .spinner{width:36px;height:36px;border:3px solid #333;border-top-color:var(--gamehub-loader-accent);border-radius:50%;animation:gamehub-spin .8s linear infinite}
+    #loading-title{letter-spacing:.02em}
+    #loading-message{min-height:18px;color:#aaa;font-size:13px;font-weight:400}
+    #loading-bar{width:min(320px,70vw);height:12px;border:1px solid #555;display:none}
+    #loading-fill{width:0;height:100%;background:var(--gamehub-loader-accent);transition:width .16s ease}
+    #music-choice{display:flex;flex-direction:column;align-items:center;gap:.75rem}
+    #music-choice button{font:1.1rem/1 sans-serif;padding:.6rem 1.5rem;border:2px solid #fff;border-radius:6px;background:transparent;color:#fff;cursor:pointer;min-width:260px;transition:background .15s}
+    #music-choice button:hover{background:rgba(255,255,255,.15)}
+    #music-choice .hint{font-size:.85rem;opacity:.6}
+    canvas{width:100%;height:100%;display:block}
+    @keyframes gamehub-spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+  <div id="loading" role="status" aria-live="polite">
+    <div class="spinner"></div>
+    <div id="loading-title">DOWNLOADING...</div>
+    <div id="loading-message">Preparing game files...</div>
+    <div id="loading-bar"><div id="loading-fill"></div></div>
+    <div id="music-choice">
+      <div>Download options</div>
+      <button id="btn-no-music">Play without music <span class="hint">(~64 MB)</span></button>
+      <button id="btn-with-music">Play with music <span class="hint">(~540 MB)</span></button>
+    </div>
+  </div>
+  <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+  <script type="module" src="game.js"></script>
+</body>
+</html>
