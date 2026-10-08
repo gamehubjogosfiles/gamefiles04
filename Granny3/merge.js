@@ -235,15 +235,41 @@
         }
         throw new Error(`Failed to load part ${url}: ${response.status}`);
       }
-      const buffer = await response.arrayBuffer();
-      
-      // Update progress
+      let buffer;
+      if (response.body && response.body.getReader) {
+        const reader = response.body.getReader();
+        const chunks = [];
+        let received = 0;
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          chunks.push(value);
+          received += value.byteLength;
+          if (mergeProgress[fileName]) {
+            mergeProgress[fileName].bytes += value.byteLength;
+            updateLoadingDisplay();
+          }
+        }
+        const joined = new Uint8Array(received);
+        let offset = 0;
+        for (const chunk of chunks) {
+          joined.set(chunk, offset);
+          offset += chunk.byteLength;
+        }
+        buffer = joined.buffer;
+      } else {
+        buffer = await response.arrayBuffer();
+        if (mergeProgress[fileName]) {
+          mergeProgress[fileName].bytes += buffer.byteLength;
+          updateLoadingDisplay();
+        }
+      }
+
       if (mergeProgress[fileName]) {
         mergeProgress[fileName].current++;
-        mergeProgress[fileName].bytes += buffer.byteLength;
         updateLoadingDisplay();
       }
-      
+
       return buffer;
     })();
     
