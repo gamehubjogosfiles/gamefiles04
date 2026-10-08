@@ -69,11 +69,31 @@
         return;
       }
 
+      let loadedBytes = 0;
+      let totalBytes = 0;
+      let loadedParts = 0;
+      let totalParts = 0;
+      config.files.forEach((file) => {
+        const progress = mergeProgress[file.name] || { bytes: 0, current: 0, total: file.parts };
+        loadedBytes += progress.bytes || 0;
+        totalBytes += progress.totalBytes || file.bytes || 0;
+        loadedParts += progress.current || 0;
+        totalParts += progress.total || file.parts || 0;
+      });
+      const hasByteTotal = totalBytes > 0;
+      const percent = hasByteTotal
+        ? Math.min(100, Math.round((loadedBytes / totalBytes) * 100))
+        : (totalParts ? Math.min(100, Math.round((loadedParts / totalParts) * 100)) : 0);
+      const formatMB = (value) => (value / 1048576).toFixed(2);
+      const overallText = hasByteTotal
+        ? `Downloading... ${formatMB(loadedBytes)} / ${formatMB(totalBytes)} MB (${percent}%)`
+        : `Downloading... ${loadedParts} / ${totalParts} parts (${percent}%)`;
+
       const lines = [
         '<div class="gamehub-merge-spinner"></div>',
         '<div class="gamehub-merge-title">DOWNLOADING...</div>',
-        '<div id="gamehub-merge-detail" class="gamehub-merge-detail">Preparing game files...</div>',
-        '<div class="gamehub-merge-bar"><div id="gamehub-merge-fill"></div></div>',
+        `<div id="gamehub-merge-detail" class="gamehub-merge-detail" aria-live="polite">${overallText}</div>`,
+        `<div class="gamehub-merge-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}"><div id="gamehub-merge-fill" style="width:${percent}%"></div></div>`,
       ];
 
       config.files.forEach((file) => {
