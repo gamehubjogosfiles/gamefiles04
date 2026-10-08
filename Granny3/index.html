@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Granny 3</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="gamehub-loading-theme.css">
+    <script id="gamehub-mobile-fullscreen-first">(function(){var m=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)||matchMedia('(max-width:680px)').matches;if(!m)return;function f(){var e=document.documentElement,r=e.requestFullscreen||e.webkitRequestFullscreen;if(r)try{var x=r.call(e,{navigationUI:'hide'});if(x&&x.catch)x.catch(function(){});}catch(_){} }addEventListener('pointerdown',f,{passive:true});addEventListener('touchstart',f,{passive:true});})();</script>
+    <script>(function(){var c=["#ef4444","#f0b400","#3b82f6","#8b5cf6","#f97316","#22c55e","#ec4899"];document.documentElement.style.setProperty("--gamehub-load-accent",c[Math.floor(Math.random()*c.length)]);})();</script>
+    <style>
+        body { overflow: hidden !important; margin: 0; padding: 0; }
+        #unity-footer, #unity-warning { display:none !important; }
+        #unity-container, #unity-canvas { width: 100% !important; height: 100% !important; position: absolute; top: 0; left: 0; }
+        #unity-container { margin: 0; padding: 0; }
+        #unity-loading-bar { display: none !important; }
+        #file-merger-loading .gamehub-merge-spinner { width: 52px; height: 52px; border: 3px solid rgba(255,255,255,.16); border-top-color: var(--gamehub-load-accent); border-radius: 50%; animation: gamehub-loading-spin .8s linear infinite; margin: 0 auto; }
+        #file-merger-loading .gamehub-merge-title { color: #fff; font-size: 1.1rem; font-weight: 700; letter-spacing: .02em; }
+        #file-merger-loading .gamehub-merge-detail { color: rgba(255,255,255,.62); font-size: .78rem; font-weight: 600; }
+        #file-merger-loading .gamehub-merge-bar { width: min(74vw,430px); height: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,.18); border-radius: 999px; background: rgba(255,255,255,.08); }
+        #file-merger-loading .gamehub-merge-bar > div { width: 0; height: 100%; border-radius: inherit; background: var(--gamehub-load-accent); transition: width .16s ease; }
+        @keyframes gamehub-loading-spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+
+<body>
+    <div id="unity-container" class="unity-desktop">
+        <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
+        <div id="unity-loading-bar">
+            <div id="unity-logo"></div>
+            <div id="unity-progress-bar-empty">
+                <div id="unity-progress-bar-full"></div>
+            </div>
+        </div>
+        <div id="unity-warning"> </div>
+        <div id="unity-footer">
+            <div id="unity-logo-title-footer"></div>
+            <div id="unity-fullscreen-button"></div>
+            <div id="unity-build-title">Trees Hate You</div>
+        </div>
+    </div>
+        <script>
+        window.fileMergerConfig = {
+            files: [
+                { name: 'FinalBuild.data', parts: 30, bytes: 390975822 },
+               { name: 'FinalBuild.wasm', parts: 2, bytes: 27984160 },
+            ],
+            basePath: 'Build/',
+            debug: true
+        };
+    </script>
+    <script src="merge.js"></script>
+    <script>
+        var canvas = document.querySelector("#unity-canvas");
+
+        function unityShowBanner(msg, type) {
+            var warningBanner = document.querySelector("#unity-warning");
+
+            function updateBannerVisibility() {
+                warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+            }
+            var div = document.createElement('div');
+            div.innerHTML = msg;
+            warningBanner.appendChild(div);
+            if (type == 'error') div.style = 'background: red; padding: 10px;';
+            else {
+                if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+                setTimeout(function() {
+                    warningBanner.removeChild(div);
+                    updateBannerVisibility();
+                }, 5000);
+            }
+            updateBannerVisibility();
+        }
+
+        var buildUrl = "Build";
+        var loaderUrl = buildUrl + "/FinalBuild.loader.js";
+        var config = {
+            arguments: [],
+            dataUrl: buildUrl + "/FinalBuild.data",
+            frameworkUrl: buildUrl + "/FinalBuild.framework.js",
+            codeUrl: buildUrl + "/FinalBuild.wasm",
+            streamingAssetsUrl: "StreamingAssets",
+            companyName: "Dvloper",
+            productName: "Granny 3",
+            productVersion: "0.1.0",
+            showBanner: unityShowBanner,
+        };
+
+        if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+            var meta = document.createElement('meta');
+            meta.name = 'viewport';
+            meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+            document.getElementsByTagName('head')[0].appendChild(meta);
+            document.querySelector("#unity-container").className = "unity-mobile";
+            canvas.className = "unity-mobile";
+        } else {
+            canvas.style.width = "960px";
+            canvas.style.height = "600px";
+        }
+
+        document.querySelector("#unity-loading-bar").style.display = "block";
+
+        var script = document.createElement("script");
+        script.src = loaderUrl;
+        script.onload = () => {
+            createUnityInstance(canvas, config, (progress) => {
+                document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
+            }).then((unityInstance) => {
+                document.querySelector("#unity-loading-bar").style.display = "none";
+                document.querySelector("#unity-fullscreen-button").onclick = () => {
+                    unityInstance.SetFullscreen(1);
+                };
+
+            }).catch((message) => {
+                alert(message);
+            });
+        };
+
+        document.body.appendChild(script);
+    </script>
+</body>
+
+</html>

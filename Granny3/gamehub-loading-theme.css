@@ -1,0 +1,77 @@
+* { box-sizing: border-box; }
+
+.gamehub-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 12px;
+  padding: 28px;
+  color: #f4f4f4;
+  background: radial-gradient(circle at 50% 42%, rgba(32, 32, 32, .96), rgba(0, 0, 0, .98) 70%);
+  font: 700 14px/1.35 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  text-align: center;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, .9);
+}
+
+.gamehub-loading::before {
+  width: 52px;
+  height: 52px;
+  border: 3px solid rgba(255, 255, 255, .16);
+  border-top-color: var(--gamehub-load-accent, #ffd400);
+  border-radius: 50%;
+  animation: gamehub-loading-spin .8s linear infinite;
+  content: "";
+}
+
+.gamehub-loading #status-text {
+  color: #fff;
+  font-size: clamp(.95rem, 2vw, 1.15rem);
+  letter-spacing: .02em;
+}
+
+.gamehub-loading #bar-container {
+  width: min(74vw, 430px);
+  height: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .08);
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, .6);
+}
+
+.gamehub-loading #bar-fill {
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--gamehub-load-accent, #ffd400);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--gamehub-load-accent, #ffd400) 65%, transparent);
+  transition: width .16s ease;
+}
+
+.gamehub-loading #progress-detail {
+  min-height: 1.25em;
+  color: rgba(255, 255, 255, .62);
+  font-size: .78rem;
+  font-weight: 600;
+  letter-spacing: .02em;
+}
+
+.gamehub-loading #error-box {
+  display: none;
+  max-width: min(86vw, 520px);
+  color: #ffb8b8;
+  font-size: .82rem;
+  font-weight: 600;
+}
+
+@keyframes gamehub-loading-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gamehub-loading::before { animation-duration: 1.8s; }
+  .gamehub-loading #bar-fill { transition: none; }
+}
