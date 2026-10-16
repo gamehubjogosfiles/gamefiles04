@@ -11,8 +11,14 @@ const overlay = document.getElementById('overlay');
 const countEl = document.getElementById('progress-count');
 const WEBGPU_GUIDE = 'https://developer.chrome.com/docs/web-platform/webgpu/';
 
+function reportGameHub(state, message) {
+  if (window.parent === window) return;
+  try { window.parent.postMessage({ gamehub: 'game-status', state, message }, '*'); } catch { /* standalone game */ }
+}
+
 function status(text) {
   statusEl.textContent = text;
+  reportGameHub('loading', text);
 }
 function returnToMenu() {
   const url = new URL(location.href);
@@ -21,6 +27,7 @@ function returnToMenu() {
 }
 globalThis.skateFatal = (message) => {
   const detail = String(message || 'Unknown startup error').slice(0, 900);
+  reportGameHub('error', detail);
   const webgpu = /webgpu|gpu|adapter|device|shader|graphics/i.test(detail);
   const help = webgpu
     ? `WebGPU could not start. Use an up-to-date desktop browser such as Chrome or Edge, enable hardware acceleration, and update your graphics driver. You can check the browser status at chrome://gpu.\n\nWebGPU guide: ${WEBGPU_GUIDE}\nBrowser support: https://caniuse.com/webgpu\n\nDetails: ${detail}\n\nOpen the WebGPU guide in a new tab?`
@@ -381,6 +388,7 @@ async function main() {
     barEl.style.width = `${percent.toFixed(1)}%`;
     barEl.parentElement.setAttribute('aria-valuenow', String(Math.round(percent)));
     countEl.textContent = `${(done / 1e6).toFixed(1)} / ${(total / 1e6).toFixed(1)} MB`;
+    reportGameHub('loading', `Loading ${shown} · ${percent.toFixed(0)}% (${(done / 1e6).toFixed(1)} / ${(total / 1e6).toFixed(1)} MB)`);
   };
   const tick = (n) => {
     done += n;
@@ -477,6 +485,7 @@ async function main() {
   // main() has loaded everything synchronously; the render loop is running.
   overlay.hidden = true;
   document.getElementById('bevy').focus();
+  reportGameHub('ready');
 }
 
 main().catch((e) => globalThis.skateFatal(String(e && e.stack || e)));
