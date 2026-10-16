@@ -388,12 +388,12 @@ async function main() {
     barEl.style.width = `${percent.toFixed(1)}%`;
     barEl.parentElement.setAttribute('aria-valuenow', String(Math.round(percent)));
     countEl.textContent = `${(done / 1e6).toFixed(1)} / ${(total / 1e6).toFixed(1)} MB`;
-    reportGameHub('loading', `Loading ${shown} · ${percent.toFixed(0)}% (${(done / 1e6).toFixed(1)} / ${(total / 1e6).toFixed(1)} MB)`);
+    reportGameHub('loading', `Downloading ${shown}... (${(done / 1e6).toFixed(2)} / ${(total / 1e6).toFixed(2)} MB)`);
   };
   const tick = (n) => {
     done += n;
-    updateProgress();
     status(`Downloading ${shown}...`);
+    updateProgress();
   };
   status(`Downloading ${shown}...`);
   updateProgress();
