@@ -1,0 +1,78 @@
+/* Plain fullscreen loading screen with an Open Sans-like local fallback. */
+@font-face {
+  font-family: "Noto Sans";
+  src: url("../assets/fonts/NotoSans-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Noto Sans";
+  src: url("../assets/fonts/NotoSans-Bold.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+#loadingHud {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  color: #f5f5f5;
+  background: #000;
+  font: 15px/1.45 "Open Sans", "Noto Sans", Arial, sans-serif;
+  opacity: 1;
+  pointer-events: none;
+  transition: opacity 220ms ease;
+}
+#loadingHud[hidden] { display: none !important; }
+#loadingHud.is-complete { opacity: 0; }
+
+.loading-card {
+  width: min(380px, 100%);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#loadingStage {
+  margin: 0 0 16px;
+  color: #f5f5f5;
+  font-family: "Open Sans", "Noto Sans", Arial, sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.3;
+  text-align: center;
+}
+
+#loadingBar {
+  display: block;
+  width: 100%;
+  height: 6px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 3px;
+  background: #303030;
+  accent-color: #f5f5f5;
+}
+#loadingBar::-webkit-progress-bar { border-radius: 3px; background: #303030; }
+#loadingBar::-webkit-progress-value { border-radius: 3px; background: #f5f5f5; }
+#loadingBar::-moz-progress-bar { border-radius: 3px; background: #f5f5f5; }
+
+#loadingAmount {
+  margin: 12px 0 0;
+  color: #f5f5f5;
+  font: 14px/1.4 "Open Sans", "Noto Sans", Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  #loadingStage { font-size: 18px; }
+}

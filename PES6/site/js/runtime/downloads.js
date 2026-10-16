@@ -51,6 +51,8 @@ function render() {
   }
   noticeEl.textContent = text;
   noticeEl.classList.toggle('warn', retrying > 0);
+  if (window.PES6_LOADING) window.PES6_LOADING.updateGameData(
+    Math.max(bytesReceived, bytesDelivered), window.PES6_PAK_TOTAL_BYTES || 0);
 }
 
 function show() {
@@ -80,6 +82,8 @@ function onActivity(activeCount, retryingCount, totalBytes, networkCount, delive
   retrying = retryingCount;
   bytesReceived = totalBytes;
   bytesDelivered = deliveredBytes || 0;
+  if (window.PES6_LOADING) window.PES6_LOADING.updateGameData(
+    Math.max(bytesReceived, bytesDelivered), window.PES6_PAK_TOTAL_BYTES || 0);
   PES6.PakDownload.setGameBusy(networkCount > 0 || retryingCount > 0);
   if (failed || warningShown || !isEnabled()) return;
 
@@ -123,6 +127,7 @@ function clearWarning() {
 
 // Shown even with the loading notice turned off, and never hidden.
 function showError(text) {
+  if (window.PES6_LOADING) window.PES6_LOADING.showError(text);
   failed = true;
   warningShown = false;
   clearTimeout(showTimer);

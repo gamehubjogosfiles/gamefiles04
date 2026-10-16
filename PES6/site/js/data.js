@@ -21,6 +21,7 @@ var METADATA_MAX_RETRY_DELAY_MS = 16000;
 function isRetryableStatus(status) {
   return status === 0 || status === 408 || status === 425 || status === 429 || status >= 500;
 }
+var pakMetadataBytesLoaded = 0;
 function fetchRangeOnce(url, begin, end) {
   var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
   var timer = controller ? setTimeout(function () { controller.abort(); }, METADATA_STALL_MS) : 0;
@@ -38,7 +39,16 @@ function fetchRangeOnce(url, begin, end) {
     }
     var total = parseInt((response.headers.get('Content-Range') || '').split('/')[1], 10);
     return response.arrayBuffer().then(function (bytes) {
-      return { bytes: new Uint8Array(bytes), total: total };
+      var payload = new Uint8Array(bytes);
+      pakMetadataBytesLoaded += payload.byteLength;
+      if (isFinite(total) && total > 0) {
+        window.PES6_PAK_TOTAL_BYTES = total;
+        if (window.PES6_LOADING) {
+          window.PES6_LOADING.setPakTotal(total);
+          window.PES6_LOADING.recordPakMetadata(payload.byteLength, total);
+        }
+      }
+      return { bytes: payload, total: total };
     });
   }).then(function (result) {
     clearTimeout(timer);

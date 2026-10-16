@@ -64,7 +64,6 @@ function report(result) {
     noticeEl.hidden = false;
   }
   if (result.errors.length) {
-    PES6.Core.elements.overlay.classList.add('boot-error');
     PES6.Core.setStatus('Navegador no compatible');
     document.getElementById('wasmLabel').textContent = 'El motor no se descargó.';
     return false;

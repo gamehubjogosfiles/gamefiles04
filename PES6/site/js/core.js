@@ -114,10 +114,7 @@ canvasEl.addEventListener('webglcontextlost', function (e) {
 
 function setStatus(text) {
   if (/^(Error|No se pudo|Navegador no compatible)/i.test(text)) {
-    var fatalEl = document.getElementById('fatalError');
-    if (fatalEl) { fatalEl.textContent = text; fatalEl.hidden = false; }
-    overlayEl.classList.add('boot-error');
-    overlayEl.hidden = false;
+    if (window.PES6_LOADING) window.PES6_LOADING.showError(text);
   }
   var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
   if (m) {
