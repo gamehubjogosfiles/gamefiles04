@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" type="image/webp" href="favicon.webp">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Choose a clean-room park and play the Skate 3 web build.">
+<title>Skate 3</title>
+<style>
+  :root { color-scheme:dark; --bg:#07111a; --panel:#102338; --panel2:#1d3853; --fg:#f5f7f9; --muted:#bdc9d4; --blue:#69bced; --blue-hi:#a8dfff; --line:#acdfff4b; --scene-image:url("./images/startpark-gameplay.jpg"); }
+  * { box-sizing:border-box; }
+  html,body { margin:0; width:100%; min-height:100%; background:var(--bg); color:var(--fg); font:16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif; }
+  body { overflow:hidden; }
+  button { font:inherit; color:inherit; }
+  #game,#bevy { position:fixed; inset:0; width:100%; height:100%; }
+  #game { z-index:0; background:#050c12; }
+  #bevy { display:block; outline:none; }
+  .screen { position:fixed; inset:0; z-index:2; }
+  #menu-screen { isolation:isolate; display:grid; grid-template-rows:auto 1fr auto; gap:24px; padding:clamp(18px,4vw,46px); background:linear-gradient(90deg,#07111ae8 0%,#07111ac9 48%,#07111ad9 100%); }
+  #menu-screen::before { content:""; position:absolute; z-index:-2; inset:-22px; background:var(--scene-image) center 47%/cover no-repeat; filter:blur(9px) saturate(.7); transform:scale(1.04); }
+  #menu-screen::after { content:""; position:absolute; z-index:-1; inset:0; background:linear-gradient(180deg,#07111a75,#07111ad1 90%),linear-gradient(90deg,#07111a74,transparent 52%,#07111a55); }
+  .brand-row { display:flex; align-items:center; justify-content:space-between; width:min(100%,1040px); margin:0 auto; }
+  .wordmark { display:flex; align-items:center; gap:10px; font-size:18px; font-weight:900; letter-spacing:.08em; text-shadow:0 2px 12px #000b; }
+  .wordmark-mark { display:grid; place-items:center; width:34px; height:34px; border:1px solid #b6ddf277; border-radius:4px; background:#173852de; color:var(--blue-hi); font-size:15px; letter-spacing:-.08em; }
+  .wordmark-text { color:var(--fg); }
+  .wordmark-text span { color:var(--blue-hi); }
+  .build-tag { color:#d0e5f4; font-size:10px; letter-spacing:.18em; font-weight:750; text-shadow:0 1px 8px #000; }
+  .selector { align-self:center; width:min(100%,760px); margin:0 auto; text-align:center; }
+  .eyebrow { color:var(--blue-hi); font-size:11px; font-weight:850; letter-spacing:.2em; text-shadow:0 1px 8px #000; }
+  .selector h1 { margin:7px 0 6px; font-size:clamp(28px,5vw,42px); line-height:1.08; letter-spacing:-.035em; text-shadow:0 2px 14px #000b; }
+  .selector-lead { margin:0 0 24px; color:#d0dbe5; font-size:14px; text-shadow:0 1px 8px #000; }
+  .carousel { display:grid; grid-template-columns:48px minmax(0,1fr) 48px; align-items:center; gap:12px; }
+  .arrow { display:grid; place-items:center; width:42px; height:42px; border:1px solid #a8dfff65; border-radius:4px; background:#102b43d9; color:#e8f5ff; font-size:25px; line-height:1; cursor:pointer; box-shadow:0 4px 18px #0006; transition:background .18s,border-color .18s,transform .18s; }
+  .arrow:hover:not(:disabled) { background:#28628d; border-color:var(--blue-hi); transform:translateY(-1px); }
+  .arrow:disabled { opacity:.45; cursor:default; }
+  #map-slide { min-width:0; border:1px solid #b0d9f35c; border-radius:5px; overflow:hidden; background:#0d1c29d9; box-shadow:0 18px 60px #0009; opacity:1; transform:translateY(0); transition:opacity .18s,transform .18s; backdrop-filter:blur(12px); }
+  #map-slide:not(.arriving) { opacity:.82; transform:translateY(3px); }
+  .preview-frame { position:relative; width:100%; aspect-ratio:16/9; overflow:hidden; background:#142536; border-bottom:1px solid #b0d9f33a; }
+  .park-photo,.park-art { display:block; width:100%; height:100%; object-fit:cover; }
+  .park-photo { object-position:center 48%; }
+  .preview-shade { position:absolute; inset:0; background:linear-gradient(180deg,#06111a2a 45%,#06111aa6 100%); pointer-events:none; }
+  .preview-badge { position:absolute; left:13px; bottom:12px; padding:6px 9px; border:1px solid #b4dfff8c; border-radius:3px; background:#0b2135d9; color:#e4f4ff; font-size:9px; font-weight:800; letter-spacing:.1em; text-decoration:none; text-transform:uppercase; box-shadow:0 2px 10px #0008; }
+  a.preview-badge:hover { background:#28628d; border-color:var(--blue-hi); }
+  .park-details { display:flex; align-items:center; gap:20px; padding:15px 19px 16px; text-align:left; background:linear-gradient(90deg,#15334de8,#0e2234ed); }
+  .park-overline { flex:none; color:var(--blue-hi); font-size:10px; font-weight:850; letter-spacing:.13em; }
+  .park-overline span { color:#829aad; }
+  .park-details h2 { flex:1; min-width:0; margin:0; font-size:clamp(19px,3vw,26px); letter-spacing:-.025em; }
+  .park-size { flex:none; margin:0; color:#f0f6fa; font-size:13px; font-weight:800; white-space:nowrap; }
+  .park-size span { color:#bdd2e1; font-size:11px; font-weight:500; }
+  .slide-nav { display:flex; align-items:center; justify-content:center; gap:12px; min-height:24px; margin-top:13px; }
+  #map-dots { display:flex; justify-content:center; gap:7px; }
+  .map-dot { width:7px; height:7px; padding:0; border:1px solid #d6e8f24a; border-radius:1px; background:#60788a; cursor:pointer; transition:width .2s,background .2s; }
+  .map-dot.active { width:20px; background:var(--blue); border-color:var(--blue-hi); }
+  #map-position { min-width:42px; color:#c0d0dc; font-size:10px; font-variant-numeric:tabular-nums; text-align:left; }
+  .actions { display:flex; flex-direction:column; align-items:center; gap:10px; margin-top:21px; }
+  #start-game { min-width:210px; padding:12px 28px; border:1px solid #b7e1ffad; border-radius:4px; background:linear-gradient(180deg,#73c5f1,#3e91c7); color:#07111a; font-size:13px; font-weight:900; letter-spacing:.045em; cursor:pointer; box-shadow:0 6px 24px #2878a955; transition:transform .18s,filter .18s; }
+  #start-game:hover:not(:disabled) { transform:translateY(-2px); filter:brightness(1.08); }
+  #start-game:disabled { opacity:.45; cursor:wait; }
+  .input-note { margin:0; color:#d0dce6; font-size:11px; text-shadow:0 1px 6px #000; }
+  #menu-status { margin:14px 0 0; color:var(--muted); font-size:12px; }
+  .footer { display:flex; justify-content:center; color:#b0bdc9; font-size:10px; letter-spacing:.04em; text-align:center; text-shadow:0 1px 7px #000; }
+  #overlay { display:grid; place-items:center; z-index:5; padding:24px; background:linear-gradient(180deg,#06111ad9,#07111af2),var(--scene-image) center/cover; }
+  #overlay[hidden],#menu-screen[hidden] { display:none !important; }
+  .loading-card { width:min(100%,540px); padding:30px 34px; border:1px solid #b0ddf46a; border-radius:5px; background:linear-gradient(145deg,#15324bdc,#081826e8); box-shadow:0 18px 70px #000b; text-align:center; backdrop-filter:blur(16px); }
+  .loading-mark { display:grid; place-items:center; width:42px; height:42px; margin:0 auto 20px; border:1px solid #a8dfff7e; border-radius:4px; background:#214766a8; color:var(--blue-hi); font-size:18px; font-weight:900; }
+  .loading-eyebrow { margin:0 0 8px; color:var(--blue-hi); font-size:10px; font-weight:850; letter-spacing:.2em; }
+  #loading-title { margin:0 0 9px; font-size:clamp(22px,4vw,30px); letter-spacing:-.025em; }
+  #status { min-height:1.5em; margin:0; color:#c6d4df; font-size:13px; }
+  .progress-track { width:100%; height:9px; margin:22px 0 10px; overflow:hidden; border:1px solid #8cb8d44d; border-radius:2px; background:#091722; }
+  #progress { width:0; height:100%; border-radius:inherit; background:linear-gradient(90deg,#70c6f3,#b0e5ff); box-shadow:0 0 14px #6ec3f1a6; transition:width .12s linear; }
+  #progress-count { color:#f0f6fa; font-size:12px; font-weight:800; font-variant-numeric:tabular-nums; }
+  .loading-note { margin:18px 0 0; color:#b4c4d0; font-size:11px; }
+  #mapcredit,#toast { display:none !important; }
+  @media(max-width:600px) {
+    #menu-screen { gap:15px; padding:18px 14px; }
+    .build-tag { max-width:130px; text-align:right; line-height:1.5; }
+    .selector-lead { margin-bottom:17px; font-size:12px; }
+    .carousel { grid-template-columns:34px minmax(0,1fr) 34px; gap:5px; }
+    .arrow { width:31px; height:34px; font-size:21px; }
+    .preview-frame { aspect-ratio:16/10; }
+    .park-details { gap:9px; padding:13px 12px 14px; }
+    .park-overline { font-size:9px; }
+    .park-size { font-size:11px; }
+    .park-size span { display:block; font-size:9px; text-align:right; }
+    .slide-nav { margin-top:9px; }
+    .actions { margin-top:15px; }
+    .loading-card { padding:25px 20px; }
+  }
+  @media(prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto !important; transition:none !important; } }
+</style>
+</head>
+<body>
+<div id="game"><canvas id="bevy" tabindex="0" aria-label="Skate 3 game"></canvas></div>
+<main id="menu-screen" class="screen">
+  <header class="brand-row">
+    <div class="wordmark"><span class="wordmark-mark">S3</span><span class="wordmark-text">SKATE<span>3</span>WEB</span></div>
+    <span class="build-tag">CLEAN-ROOM WEB BUILD</span>
+  </header>
+  <section class="selector" aria-labelledby="menu-title">
+    <span class="eyebrow">PARK SELECT</span>
+    <h1 id="menu-title">Choose your park</h1>
+    <p class="selector-lead">Pick a spot. We’ll load it and drop you straight into the game.</p>
+    <div class="carousel" aria-label="Park selection carousel">
+      <button id="previous-map" class="arrow" type="button" aria-label="Previous park">‹</button>
+      <article id="map-slide" class="arriving" aria-live="polite"></article>
+      <button id="next-map" class="arrow" type="button" aria-label="Next park">›</button>
+    </div>
+    <div class="slide-nav"><div id="map-dots" aria-label="Choose a park"></div><span id="map-position"></span></div>
+    <div class="actions">
+      <button id="start-game" type="button" disabled>Start skating</button>
+      <p class="input-note">Keyboard or controller required for gameplay. No touchscreen pad.</p>
+    </div>
+    <p id="menu-status" role="status">Loading park list…</p>
+  </section>
+  <footer class="footer">Unofficial fan project. Skate 3 is a trademark of its respective owners.</footer>
+</main>
+<section id="overlay" class="screen" hidden aria-live="polite">
+  <div class="loading-card">
+    <div class="loading-mark">S3</div>
+    <p class="loading-eyebrow">GETTING THE PARK READY</p>
+    <h1 id="loading-title">Loading your park</h1>
+    <p id="status">Preparing game files…</p>
+    <div class="progress-track" role="progressbar" aria-label="Game download progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div id="progress"></div>
+    </div>
+    <div id="progress-count">0.0 / 0.0 MB</div>
+    <p class="loading-note">The game will start automatically when loading is complete.</p>
+  </div>
+</section>
+<a id="mapcredit" hidden></a>
+<div id="toast" aria-live="polite"></div>
+<script type="module" src="./menu.js"></script>
+<script type="module" src="./loader.js"></script>
+</body>
+</html>

@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+ <!-- Básico -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>PES 6 — Local Fullscreen</title>
+
+<meta
+  name="description"
+  content="Juega PES 6 Online de OptiJuegos desde tu navegador en la web, sin descargar ni instalar. Compatible con mando, partidas guardadas y modo online."
+>
+
+<meta name="theme-color" content="#3B7572">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+<link rel="alternate" hreflang="es" href="https://pes6.optijuegos.net/">
+<link rel="alternate" hreflang="x-default" href="https://pes6.optijuegos.net/">
+
+<link rel="canonical" href="https://pes6.optijuegos.net/">
+<link rel="icon" type="image/webp" href="favicon.webp">
+
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="OptiJuegos">
+<meta property="og:locale" content="es_AR">
+
+<meta
+  property="og:title"
+  content="PES 6 Web Online Port"
+>
+
+<meta
+  property="og:description"
+  content="Juega PES 6 Online de OptiJuegos desde tu navegador en la web"
+>
+
+<meta property="og:url" content="https://pes6.optijuegos.net/">
+<meta property="og:image" content="https://pes6.optijuegos.net/assets/logo.png">
+<meta property="og:image:alt" content="PES 6 Web Online Port">
+
+
+<!-- Twitter / X -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://pes6.optijuegos.net/assets/logo.png">
+
+<meta
+  name="twitter:title"
+  content="PES 6 Web Online Port"
+>
+
+<meta
+  name="twitter:description"
+  content="Juega PES 6 Online de OptiJuegos directamente desde tu navegador en la web"
+>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/rooms.css">
+  <link rel="stylesheet" href="css/game-only.css">
+  <script>
+    window.PES6_AUTO_START = true;
+    try {
+      localStorage.setItem('pes6.showLoadingNotice', '0');
+      localStorage.setItem('pes6.downloadFullPak', '0');
+      localStorage.setItem('pes6.commentary', '0');
+    } catch (e) {}
+  </script>
+  </head>
+<body>
+  <header>
+    <a href="https://optijuegos.net"><img class="logo" draggable="false" src="assets/logo.png" alt="OptiProjects"></a>
+    <a href="https://www.youtube.com/@OptiProjects"><img class="logo2" draggable="false" src="assets/logo2.png" alt="YouTube"></a>
+  </header>
+
+  <main class="layout">
+    <section class="player-col">
+      <div class="player" id="stage">
+        <canvas id="canvas" width="480" height="272" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
+        <div id="overlay">
+          <h1 class="title">PES 6 Web Online</h1>
+          <p class="subtitle">Pro Evolution Soccer 6 (PSP) recompilado para el navegador</p>
+          <div class="load-line">
+            <span id="wasmLabel">Preparando...</span>
+            <progress id="wasmProgress" max="100" hidden></progress>
+          </div>
+          <div class="load-line">
+            <span id="status">Descargando...</span>
+            <progress id="progress" max="100" value="0" hidden></progress>
+          </div>
+          <div class="compat-notice" id="compatNotice" hidden></div>
+          <p id="fatalError" role="alert" hidden></p>
+          <div class="start-choice" id="startChoice" hidden>
+            <button type="button" class="btn primary" id="startWithCommentary" data-commentary="">Jugar con relatos originales españoles (precarga)</button>
+            <button type="button" class="btn primary" id="startWithMariano" data-commentary="mariano">Jugar con relatos de Mariano Closs, Argentina (precarga)</button>
+            <button type="button" class="btn" id="startWithoutCommentary" data-commentary="off">Jugar sin relatos (Más ligero)</button>
+          </div>
+        </div>
+        <!-- Inside the stage so they also show in fullscreen. -->
+        <div class="touch-pad" id="touchPad" hidden>
+          <div class="touch-btn touch-shoulder touch-l" data-button="L">L</div>
+          <div class="touch-btn touch-shoulder touch-r" data-button="R">R</div>
+          <div class="touch-dpad" data-dpad></div>
+          <div class="touch-stick" data-stick><div class="touch-stick-knob"></div></div>
+          <div class="touch-face">
+            <div class="touch-btn touch-triangle" data-button="Triangle">&#9651;</div>
+            <div class="touch-btn touch-circle" data-button="Circle">&#9675;</div>
+            <div class="touch-btn touch-cross" data-button="Cross">&#10005;</div>
+            <div class="touch-btn touch-square" data-button="Square">&#9633;</div>
+          </div>
+          <div class="touch-btn touch-small touch-select" data-button="Select">SELECT</div>
+          <div class="touch-btn touch-small touch-start" data-button="Start">START</div>
+        </div>
+        <div class="stage-dialog" id="savedataDialog" hidden>
+          <div class="stage-dialog-panel">
+            <h2 id="savedataTitle">Guardar partida</h2>
+            <div class="hint">Flechas o cruceta para elegir, Enter o Cross para aceptar, Esc o Circle para cancelar.</div>
+            <div class="savedata-list" id="savedataList"></div>
+            <div class="modal-footer">
+              <span class="modal-status" id="savedataStatus"></span>
+              <button class="btn small" id="savedataCancel">Cancelar</button>
+              <button class="btn small primary" id="savedataConfirm">Aceptar</button>
+            </div>
+          </div>
+        </div>
+        <div class="toast" id="toast" hidden></div>
+        <div class="net-status" id="netStatus" role="status" hidden></div>
+        <div class="pak-status" id="pakStatus" role="status" hidden></div>
+      </div>
+      <div class="now-playing">
+        <div class="now-playing-title">
+          <span id="nowPlaying"></span>
+          <span id="netGameLink" class="game-link" hidden>
+            <span id="netGamePing" class="game-ping"></span>
+            <small id="netGameNotice" class="game-link-notice"></small>
+          </span>
+        </div>
+        <span id="fps"></span>
+      </div>
+      <div class="toolbar">
+        <button class="btn" id="fullscreen">Pantalla completa</button>
+        <button class="btn" id="openBindings">Controles</button>
+      </div>
+
+      <section class="about" id="about">
+        <details>
+        <summary>Acerca de PES 6 Web Online y preguntas frecuentes</summary>
+        <h2>Jugá PES 6 online en el navegador</h2>
+        <p>PES 6 Web Online es Pro Evolution Soccer 6 de PSP recompilado a WebAssembly para correr directo en tu navegador, sin instalar nada. Soporta mando, pantalla táctil, partidas guardadas, option files y partidos online contra otros jugadores.</p>
+        <h2>Preguntas frecuentes</h2>
+        <h3>¿Es gratis?</h3>
+        <p>Sí. Abrís la página y jugás, sin registro ni descargas.</p>
+        <h3>¿Qué necesito para jugar?</h3>
+        <p>Un navegador moderno con WebGL2 (Chrome, Edge, Firefox). Funciona con teclado, mando USB/Bluetooth o controles táctiles en celular.</p>
+        <h3>¿Puedo jugar online?</h3>
+        <p>Sí. Entrá al apartado Inalámbrico del juego, creá un nombre y elegí una sala en la pestaña Online.</p>
+        <h3>¿Puedo cargar mi option file o partidas?</h3>
+        <p>Sí. Desde la pestaña Partidas importás un .zip o una carpeta de PSP/SAVEDATA.</p>
+        <h3>¿Por qué tengo lag cuando juego online?</h3>
+        <p>El juego online funciona de igual a igual (P2P): los jugadores se conectan entre sí y cada partido depende de la conexión entre los dos, no de un servidor potente. El lag suele deberse a la distancia entre jugadores, al ping, al WiFi (mejor usar cable) o a que alguno tenga una conexión inestable. En la pestaña Online podés elegir el tipo de conexión directa (WebRTC): "Fiable" (la opción por defecto) es la más estable pero puede sumar retraso, y "Rápida" reduce la demora pero puede perder paquetes. Elegí una sala con jugadores cercanos y evitá descargas en segundo plano mientras jugás.</p>
+        <h3>¿Por qué el juego va lento o se traba?</h3>
+        <p>PES 6 Web Online emula una consola PSP dentro del navegador, y eso es pesado para la PC o el celular. Si tenés tirones, bajá la resolución interna a 1x en la pestaña Gráficos, dejá el frame rate en 30 FPS (el modo de 60 FPS es experimental y consume más), cerrá otras pestañas y programas, y usá un navegador actualizado como Chrome o Edge. En equipos de gama baja o celulares viejos puede no alcanzar la velocidad completa.</p>
+        <h3>¿Por qué veo errores visuales o gráficos raros?</h3>
+        <p>El renderizado usa WebGL 2, y su comportamiento depende de tu placa de video, de los drivers y del navegador, por lo que en algunas PCs pueden aparecer texturas incorrectas, parpadeos o pantallas negras. Probá actualizar los drivers de la placa de video, activar la aceleración por hardware del navegador, usar otro navegador, o desactivar el suavizado y el renderer nativo en la pestaña Gráficos. Si el problema sigue, reportalo indicando tu navegador y tu placa de video.</p>
+        </details>
+      </section>
+    </section>
+
+    <aside class="sidebar">
+      <div class="tabs">
+        <button class="tab active" data-panel="panelGeneral">General</button>
+        <button class="tab" data-panel="panelGraphics">Gráficos</button>
+        <button class="tab" data-panel="panelSaves">Partidas</button>
+        <button class="tab" data-panel="panelOnline">Online</button>
+        <button class="tab" data-panel="panelData">Datos</button>
+        <button class="tab" data-panel="panelChat">Chat</button>
+        <button class="tab" data-panel="panelLog">Log</button>
+      </div>
+
+      <div class="panel settings-panel" id="panelGeneral">
+        <div class="note">Los ajustes se guardan en este navegador al cambiarlos. Volumen, frame rate, resolución interna y suavizado se aplican al instante; el resto, al reiniciar el juego.</div>
+        <div class="section-label">Audio</div>
+        <div class="setRow"><span>Volumen</span>
+        <span class="range">
+          <input type="range" min="0" max="100" step="5" value="100" data-section="audio" data-key="volume" id="volumeRange">
+          <output id="volumeValue" for="volumeRange">100%</output>
+        </span></div>
+        <div class="section-label">Inicio</div>
+        <div class="setRow"><span>Saltar intro</span>
+        <select data-section="boot" data-key="skip_intro">
+          <option value="0">No</option>
+          <option value="1">Sí</option>
+        </select></div>
+        <div class="setRow"><span>Idioma (con saltar intro)</span>
+        <select data-section="boot" data-key="language">
+          <option value="">El último usado</option>
+          <option value="es">Español</option>
+          <option value="en">English</option>
+          <option value="fr">Français</option>
+          <option value="de">Deutsch</option>
+          <option value="it">Italiano</option>
+        </select></div>
+        <div class="section-label">Descargas</div>
+        <div class="setRow"><span>Aviso de carga sobre el juego</span>
+        <select id="showLoadingNotice">
+          <option value="1">Sí (por defecto)</option>
+          <option value="0">No</option>
+        </select></div>
+        <div class="setRow"><span>Descargar el juego completo (unos 300 MB)</span>
+        <select id="downloadFullPak">
+          <option value="0">No (se baja mientras jugás)</option>
+          <option value="1">Sí, en segundo plano</option>
+        </select></div>
+        <div class="section-label">Controles táctiles</div>
+        <div class="setRow"><span>Mando en pantalla</span>
+        <select id="touchControls">
+          <option value="auto">Automático (pantallas táctiles)</option>
+          <option value="on">Siempre</option>
+          <option value="off">Nunca</option>
+        </select></div>
+      </div>
+
+      <div class="panel settings-panel" id="panelGraphics" hidden>
+        <div class="setRow"><span>Renderer</span>
+        <select data-section="render" data-key="backend" id="rendererSelect">
+          <option value="auto" selected>Automático (WebGPU, si no WebGL2)</option>
+          <option value="webgpu">WebGPU</option>
+          <option value="webgl2">WebGL2</option>
+        </select></div>
+        <div class="note" id="rendererNote">El cambio de renderer se aplica al reiniciar el juego.</div>
+        <button class="btn small" id="rendererRetry" hidden>Reiniciar con WebGL2</button>
+        <div class="setRow"><span>Frame rate del partido</span>
+        <select data-section="render" data-key="frame_rate">
+          <option value="30">30 FPS (original)</option>
+          <option value="60">60 FPS (experimental, más pesado)</option>
+        </select></div>
+        <div class="setRow"><span>Resolución interna</span>
+        <select data-section="render" data-key="scale" id="scaleSelect">
+          <option value="1">1x 480x272 (la más rápida)</option>
+          <option value="2" selected>2x 960x544</option>
+          <option value="3">3x 1440x816</option>
+        </select></div>
+        <div class="note" id="scaleNote" hidden>Esta build usa el renderer por software, que siempre dibuja a 480x272: la resolución interna solo aplica en la build WebGL2.</div>
+        <div class="setRow"><span>Suavizar imagen</span>
+        <select data-section="render" data-key="linear_filter">
+          <option value="0">No (píxeles nítidos)</option>
+          <option value="1">Sí</option>
+        </select></div>
+        <div class="setRow"><span>Renderer nativo</span>
+        <select data-section="debug" data-key="native_renderer_replace">
+          <option value="1">Sí (por defecto)</option>
+          <option value="0">No (renderer PSP original)</option>
+        </select></div>
+      </div>
+
+      <div class="panel settings-panel" id="panelSaves" hidden>
+        <div class="section-label">Partidas guardadas / Option file</div>
+        <div class="note">Cargá un option file o una partida (carpeta de PSP/SAVEDATA, o un .zip con esas carpetas). Se guardan en este navegador; si el juego ya está corriendo, recargá la página para que los lea.</div>
+        <div class="row">
+          <button class="btn small primary" id="importSavesZip" title="Un .zip con una o más carpetas de PSP/SAVEDATA">Cargar .zip</button>
+          <button class="btn small" id="importSavesDir" title="Elegí la carpeta de la partida (o PSP/SAVEDATA entera)">Cargar carpeta</button>
+          <button class="btn small" id="exportAllSaves" title="Descarga todas las partidas en un .zip">Descargar todo</button>
+        </div>
+        <input type="file" id="importSavesZipFile" accept=".zip,application/zip" multiple hidden>
+        <input type="file" id="importSavesDirFile" webkitdirectory multiple hidden>
+        <div id="saveList"></div>
+        <div class="note" id="savesStatus"></div>
+      </div>
+
+      <div class="panel settings-panel" id="panelOnline" hidden>
+        <div class="note">Para jugar online entrá al apartado Inalámbrico del juego (abajo de todo en el menú) y elegí una sala acá.</div>
+        <!-- Room list and room view (js/rooms/room_browser.js). -->
+        <div class="rooms-head">
+          <span class="section-label">Salas</span>
+          <span class="rooms-count" id="roomsCount"></span>
+        </div>
+        <div class="rooms-browse" id="roomsBrowse">
+          <div class="rooms-list" id="roomsList" role="listbox" tabindex="0" aria-label="Salas"></div>
+          <div class="rooms-actions">
+            <label class="check"><input type="checkbox" id="roomsShowEmpty"> Mostrar vacías</label>
+            <button class="btn small" id="roomsRefresh">Actualizar</button>
+            <button class="btn small" id="roomsBack" hidden>Mi sala</button>
+            <button class="btn small primary" id="roomsJoin">Unirse</button>
+          </div>
+        </div>
+        <div class="rooms-room" id="roomsRoom" hidden>
+          <div class="rooms-room-head">
+            <span class="rooms-room-title" id="roomsRoomTitle"></span>
+            <span class="rooms-room-meta" id="roomsRoomMeta"></span>
+          </div>
+          <ul class="rooms-members" id="roomsMembers"></ul>
+          <div class="rooms-actions">
+            <button class="btn small" id="roomsVisibility" hidden></button>
+            <button class="btn small" id="roomsShare">Compartir link</button>
+            <button class="btn small" id="roomsShowList">Ver salas</button>
+            <button class="btn small" id="roomsLeave">Salir de la sala</button>
+          </div>
+        </div>
+        <div class="note" id="roomsStatus"></div>
+        <div class="section-label">Crear sala</div>
+        <form class="rooms-create" id="roomsCreateForm">
+          <label class="field">
+            <span>Nombre</span>
+            <input class="text-input" type="text" id="roomsCreateTitle" maxlength="40" autocomplete="off" placeholder="Mi sala">
+          </label>
+          <label class="field">
+            <span>Máximo de jugadores</span>
+            <select class="text-input" id="roomsCreateMax"></select>
+          </label>
+          <label class="field">
+            <span>Visibilidad</span>
+            <select class="text-input" id="roomsCreateVisibility">
+              <option value="public" selected>Pública (aparece en la lista)</option>
+              <option value="private">Privada (solo con el link)</option>
+            </select>
+          </label>
+          <div class="note">Una sala sin jugadores se borra sola a los 15 minutos.</div>
+          <div class="row">
+            <button type="submit" class="btn small primary" id="roomsCreate">Crear sala</button>
+          </div>
+        </form>
+        <div class="section-label">Conexión</div>
+        <label class="field">
+          <span>Conexión directa (WebRTC)</span>
+          <select class="text-input" data-section="net" data-key="rtc" id="netRtc">
+            <option value="reliable" selected>Fiable (reenvía todo, por defecto)</option>
+            <option value="timed">Equilibrada (reenvía hasta 100 ms)</option>
+            <option value="unreliable">Rápida (sin reenvíos, como la PSP)</option>
+            <option value="off">Desactivada (todo por el relay)</option>
+          </select>
+        </label>
+        <div class="note">El cambio de conexión se aplica al recargar la página.</div>
+        <div class="note" id="netLinkStatus"></div>
+        <div class="row">
+          <button class="btn small primary save-settings">Guardar</button>
+        </div>
+      </div>
+
+      <div class="panel settings-panel" id="panelData" hidden>
+        <div class="section-label">Datos descargados</div>
+        <div class="note">Las partes del juego que se bajan quedan guardadas en este navegador, así la próxima vez carga sin volver a descargarlas.</div>
+        <div class="row">
+          <button class="btn small" id="clearDownloads" title="Borra los datos del juego guardados en este navegador">Borrar datos descargados</button>
+          <span class="note" id="downloadsStatus"></span>
+        </div>
+        <div class="section-label">Avanzado</div>
+        <details>
+          <summary>Editar pes6.ini</summary>
+          <textarea id="settingsIni" spellcheck="false"></textarea>
+        </details>
+        <div class="row">
+          <button class="btn small primary save-settings">Guardar</button>
+        </div>
+      </div>
+
+      <div class="panel chat-panel" id="panelChat" hidden>
+        <iframe class="chat-frame" id="chatFrame" title="Chat" loading="lazy"
+                allow="clipboard-write" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      </div>
+      <div class="panel" id="panelLog" hidden>
+        <div class="row">
+          <label class="check"><input type="checkbox" id="showlog"> Mostrar</label>
+          <button class="btn small" id="clearlog">Limpiar</button>
+          <button class="btn small" id="copylog" title="Copia las últimas miles de líneas">Copiar</button>
+          <button class="btn small" id="copytail" title="Copia solo las últimas 300 líneas">Copiar final</button>
+        </div>
+        <span id="dropped"></span>
+        <pre id="log" hidden></pre>
+      </div>
+      <div class="note settings-status" id="settingsStatus"></div>
+    </aside>
+  </main>
+
+  <footer>
+    <h3>Este proyecto no esta afiliado ni asociado con Konami</h3>
+    <h3>DMCA: consultasopti@gmail.com</h3>
+  </footer>
+
+  <!-- News is hidden by default; data-version identifies the dismissal. -->
+  <div class="news" id="news" role="dialog" aria-modal="true" aria-labelledby="newsTitle" data-version="2026-10-03" hidden>
+    <span id="newsTitle">Novedades</span>
+    <article class="news-box">
+      <h2>¡Se terminó el lag en el online!</h2>
+      <p>Mude el online a un servidor nuevo y dedicado. Los partidos ahora van por RELAY, sin el lag de P2P!!</p>
+      <h3>Nuevas optimizaciones de <span class="news-accent">WebGL 2</span></h3>
+      <p>Ahora el juego debería andar hasta un 50% más rápido en términos de gráficos. Aunque de todas maneras, falta mejorar los FPS en dispositivos mobiles</p>
+      <h3>Nueva <span class="news-accent">cámara</span></h3>
+      <p>Las cámaras Normal y Wide ahora muestran el estadio completo, sin tribunas cortadas. La pidieron muchos jugadores y viene activada por defecto.</p>
+      <h3>Nueva liga: <span class="news-accent">Liga MX 2007</span></h3>
+      <p>Llegan los 18 clubes de la liga mexicana, con planteles, uniformes y escudos: América, Chivas, Cruz Azul, Pumas, Tigres, Monterrey, Toluca y más. Los encontrás en su propia pestaña al elegir equipo.</p>
+      <h3>Audio <span class="news-accent">sin crujidos</span></h3>
+      <p>Arreglamos los crujidos y cortes de sonido que aparecían durante los partidos.</p>
+      <h3>Un saludo a <span class="news-accent">HolyHosting</span></h3>
+      <p>Muchas gracias a HolyHosting por mantener el servidor del online. ¡Gracias a ellos podemos seguir jugando!</p>
+      <div class="news-actions">
+        <button class="news-hide" id="newsHide">No mostrar más</button>
+        <button class="news-close" id="newsClose">Cerrar</button>
+      </div>
+    </article>
+  </div>
+
+  <div class="modal" id="bindingsModal" role="dialog" aria-modal="true" aria-labelledby="bindingsTitle" hidden>
+    <div class="modal-panel" id="bindingsPanel">
+      <h2 id="bindingsTitle">Configuración de controles</h2>
+      <div class="hint">Tocá una asignación y presioná una tecla o un botón del mando. Esc cancela.</div>
+      <div class="bindings-toolbar">
+      <div class="row bindingsTools">
+        <button class="btn small primary" id="autoBindings" title="Asigna los mandos conectados a J1, J2... y restablece los botones">Autoconfigurar</button>
+        <button class="btn small" id="exportBindings" title="Descarga la configuración de controles a un archivo">Guardar archivo</button>
+        <button class="btn small" id="importBindings" title="Carga una configuración de controles guardada">Cargar archivo</button>
+        <input type="file" id="importBindingsFile" accept=".json,application/json" hidden>
+      </div>
+      <div class="bindings-mode" role="group" aria-label="Tipo de control">
+        <button id="showGamepadBindings" class="active" aria-pressed="true" aria-controls="gamepadBindingsPanel">Mandos</button>
+        <button id="showKeyboardBindings" aria-pressed="false" aria-controls="keyboardBindingsPanel">Teclado · J1</button>
+      </div>
+      </div>
+      <div id="gamepadBindingsPanel">
+        <h3 class="bindings-section-title">Jugador</h3>
+        <div class="bindings-player-select">
+        <div class="playerTabs" id="playerTabs"></div>
+        <div class="bindRow deviceRow">
+          <button id="prevDevice" title="Dispositivo anterior">&#9664;</button>
+          <span class="current" id="playerDevice"></span>
+          <button id="nextDevice" title="Dispositivo siguiente">&#9654;</button>
+        </div>
+        </div>
+        <p class="hint bindings-detection-hint">Si no te detecta el control, probá moverlo o presionar un botón con la página en foco.</p>
+        <div id="gamepadBindings"></div>
+        <div class="row bindings-player-tools">
+          <button class="btn small" id="resetPlayerBindings">Restablecer este jugador</button>
+        </div>
+      </div>
+      <div id="keyboardBindingsPanel" hidden>
+        <h3>Teclado (Jugador 1, incluye el movimiento)</h3>
+        <div id="keyboardBindings"></div>
+      </div>
+      <details class="bindings-detected">
+        <summary>Mandos detectados y calibración</summary>
+        <div class="hint">Presioná un botón del mando con la página en foco para detectarlo.</div>
+        <div id="padList"></div>
+        <div class="padWizard" id="padWizard" hidden>
+          <div class="padWizardStep" id="padWizardStep"></div>
+          <div class="padWizardNote" id="padWizardNote"></div>
+          <div class="row">
+            <button class="btn small" id="padWizardSkip">Saltar</button>
+            <button class="btn small" id="padWizardCancel">Cancelar</button>
+          </div>
+        </div>
+      </details>
+      <div class="modal-footer">
+        <span class="modal-status" id="bindingsStatus" role="status" aria-live="polite"></span>
+        <button class="btn small" id="resetBindings">Restablecer todo</button>
+        <button class="btn small primary" id="closeBindings">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/ads.js"></script>
+  <script src="js/core.js"></script>
+  <script src="js/netserver.js"></script>
+  <script src="js/rooms/room_link.js"></script>
+  <script src="js/rooms/player_name.js"></script>
+  <script src="js/rooms/room_browser.js?v=20261007-idle1"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/runtime/renderer.js"></script>
+  <script src="js/online.js?v=20261007-idle1"></script>
+  <script src="js/saves.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/range-cache.js"></script>
+  <script src="js/savedata.js"></script>
+  <script src="js/pakdownload.js"></script>
+  <script src="js/commentary-preload.js"></script>
+  <script src="js/bindings.js"></script>
+  <script src="js/gamepads.js"></script>
+  <script src="js/touch.js"></script>
+  <script src="js/runtime/loader.js"></script>
+  <script src="js/runtime/debug.js"></script>
+  <script src="js/runtime/downloads.js"></script>
+  <script src="js/runtime/module.js"></script>
+  <script src="js/runtime/player.js?v=20261007-idle1"></script>
+  <script src="js/runtime/background.js"></script>
+  <script src="js/runtime.js"></script>
+  <script src="js/errors.js"></script>
+  <script src="js/ui.js?v=20261010-fps1"></script>
+  <script src="js/news.js"></script>
+  <script src="js/compat.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

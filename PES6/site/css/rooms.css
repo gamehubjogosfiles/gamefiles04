@@ -1,0 +1,51 @@
+    /* Room list of the Online tab (js/rooms/room_browser.js). */
+    .rooms-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+    .rooms-count { color: var(--muted); font-size: 12px; white-space: nowrap; }
+    .rooms-browse, .rooms-room { display: flex; flex-direction: column; gap: 8px; }
+    .rooms-browse[hidden], .rooms-room[hidden] { display: none; }
+    /* Scrolls with the mouse wheel; the page around it stays put. */
+    .rooms-list {
+      height: 260px; overflow-y: auto; overscroll-behavior: contain;
+      background: rgba(255, 255, 255, 0.04); border: 1px solid var(--panel-edge); border-radius: 6px;
+      font-size: 13px; outline: none;
+    }
+    .rooms-list:focus-visible { border-color: var(--accent); }
+    .rooms-row {
+      display: grid; grid-template-columns: 22px minmax(0, 1fr) auto 56px; align-items: center; gap: 6px;
+      padding: 4px 8px 4px 2px; cursor: pointer;
+    }
+    .rooms-row:hover { background: rgba(255, 255, 255, 0.06); }
+    .rooms-row.selected { background: rgba(31, 181, 168, 0.22); }
+    .rooms-row.current .rooms-name { color: var(--accent); font-weight: 700; }
+    .rooms-expand {
+      width: 22px; height: 22px; padding: 0; border: 0; border-radius: 4px;
+      background: transparent; color: var(--muted); font-size: 12px; cursor: pointer;
+    }
+    .rooms-expand:hover, .rooms-expand[aria-expanded="true"] { color: var(--accent); background: rgba(255, 255, 255, 0.08); }
+    .rooms-name { overflow-wrap: anywhere; }
+    .rooms-players { color: var(--muted); white-space: nowrap; }
+    .rooms-ping { text-align: right; white-space: nowrap; }
+    .rooms-empty { display: block; color: var(--muted); text-align: center; padding: 16px 8px; }
+    /* Players of an unfolded row, and of the room the game is in. */
+    .rooms-detail, .rooms-members {
+      list-style: none; margin: 0; padding: 4px 8px 6px 30px; font-size: 12px;
+    }
+    .rooms-detail { background: rgba(0, 0, 0, 0.18); border-bottom: 1px solid var(--panel-edge); }
+    .rooms-members {
+      padding-left: 8px; max-height: 260px; overflow-y: auto;
+      background: rgba(255, 255, 255, 0.04); border: 1px solid var(--panel-edge); border-radius: 6px;
+    }
+    .rooms-detail li, .rooms-members li {
+      display: grid; grid-template-columns: minmax(0, 1fr) auto 56px; gap: 6px; padding: 2px 0;
+    }
+    .rooms-detail li.you .rooms-member-name, .rooms-members li.you .rooms-member-name { color: var(--accent); font-weight: 700; }
+    .rooms-detail li.rooms-member-note, .rooms-members li.rooms-member-note { display: block; color: var(--muted); }
+    .rooms-member-name { overflow-wrap: anywhere; }
+    .rooms-member-state { color: var(--muted); white-space: nowrap; }
+    .rooms-member-ping { text-align: right; white-space: nowrap; }
+    .rooms-room-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+    .rooms-room-title { font-size: 15px; font-weight: 700; color: var(--accent); overflow-wrap: anywhere; }
+    .rooms-room-meta { color: var(--muted); font-size: 12px; white-space: nowrap; }
+    .rooms-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+    .rooms-actions .btn { flex: 1 1 auto; }
+    .rooms-create { display: flex; flex-direction: column; gap: 8px; }

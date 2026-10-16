@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<link href="https://fonts.bunny.net/css2?family=Inter:wght@400..700" rel="stylesheet">
+<style>
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: transparent;
+    font-family: Inter, sans-serif;
+    font-size: 15px;
+    color: rgb(255, 255, 255);
+}
+
+main {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    padding: 7px;
+    background-color: rgba(20, 31, 30, 0.5);
+    border: 3px solid rgba(0, 0, 0, 0.29);
+    border-radius: 11px;
+    box-shadow: 0 4px 8px 2px rgba(0, 0, 0, 0.33);
+}
+
+/* Pantallas ocultas por defecto */
+#username, #banScreen, #chat {
+    display: none;
+    height: 100%;
+    flex-direction: column;
+}
+
+input, button, ul {
+    border-radius: 3px;
+}
+
+input, ul, .icon-btn {
+    background-color: rgba(0, 0, 0, 0.33);
+}
+
+input, button {
+    border: none;
+    outline: none;
+    color: rgb(255, 255, 255);
+}
+
+button {
+    cursor: pointer;
+    min-width: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+ul {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    list-style-type: none;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin: 0;
+    padding: 2px 13px 8px 10px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.35) transparent;
+    min-height: 0;
+}
+
+ul::-webkit-scrollbar { width: 4px; }
+ul::-webkit-scrollbar-track { background: transparent; border-radius: 999px; }
+ul::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.35); border-radius: 999px; }
+ul::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.5); }
+ul::-webkit-scrollbar-button { width: 0; height: 0; display: none; }
+
+li {
+    margin-top: 8px;
+    word-break: break-word;
+    position: relative;
+    flex-shrink: 0;
+}
+
+li > div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: rgba(187, 187, 187, 0.5);
+}
+
+.mod-actions {
+    display: flex;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+.mod-actions > * + * { margin-left: 2px; }
+li:hover .mod-actions { opacity: 1; }
+
+.mod-btn {
+    background: none;
+    font-size: 10px;
+    padding: 0 3px;
+    min-width: auto;
+    border-radius: 2px;
+}
+.mod-btn.ban     { color: rgb(255, 68, 68); }
+.mod-btn.timeout { color: rgb(255, 165, 0); }
+.mod-btn:hover   { opacity: 0.8; background-color: rgba(255, 255, 255, 0.07); }
+
+.delete-btn {
+    position: absolute;
+    right: 0;
+    top: 0;
+    background: rgb(20, 31, 30);
+    color: rgb(170, 170, 170);
+    font-size: 10px;
+    padding: 2px 5px;
+    border-radius: 2px;
+    opacity: 0;
+    transition: opacity 0.15s;
+    min-width: auto;
+}
+li:hover .delete-btn { opacity: 1; }
+.delete-btn:hover { color: rgb(255, 255, 255); background: rgba(255, 255, 255, 0.13); }
+
+#chatErrorContainer {
+    width: 100%;
+    display: none;
+    flex-direction: column;
+    padding: 6px 8px;
+    border-radius: 3px;
+    box-sizing: border-box;
+    background-color: rgba(61, 0, 0, 0.88);
+    margin-top: 8px;
+    flex-shrink: 0;
+}
+#chatErrorDescription {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.66);
+}
+
+.inputContainer {
+    width: 100%;
+    min-height: 32px;
+    display: flex;
+    flex-shrink: 0;
+}
+.inputContainer > * + * { margin-left: 8px; }
+.inputContainer.mt6 { margin-top: 6px; }
+
+input {
+    width: 100%;
+    padding: 3px 8px;
+    font-family: Inter, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    box-sizing: border-box;
+}
+
+.send {
+    min-width: 48px;
+    background-color: rgb(59, 117, 114);
+    transition: background-color 0.15s, opacity 0.15s;
+}
+.send:hover  { background-color: rgba(59, 117, 114, 0.39); }
+.send:active { background-color: rgba(59, 117, 114, 0.2); outline: 3px solid rgba(59, 117, 114, 0.67); }
+
+.icon-btn { width: 32px; }
+.icon-btn:hover  { background-color: rgba(0, 0, 0, 0.2); }
+.icon-btn:active { background-color: rgba(0, 0, 0, 0.15); outline: 3px solid rgba(0, 0, 0, 0.29); }
+
+.chat-image {
+    display: block;
+    max-width: 100%;
+    max-height: 260px;
+    width: auto;
+    border-radius: 6px;
+    margin-top: 6px;
+}
+
+/* Pantalla username */
+#username { justify-content: center; }
+#username > * + * { margin-top: 8px; }
+
+h1 {
+    margin: 0;
+    text-align: center;
+}
+
+p {
+    margin: 0;
+    padding-left: 8px;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* IE11 no soporta colores #RRGGBBAA, por eso rgba */
+.admin-badge {
+    font-size: 9px;
+    border-radius: 2px;
+    padding: 1px 4px;
+    margin-left: 4px;
+}
+.badge-admin { background: rgba(255, 215, 0, 0.2);   color: rgb(255, 215, 0); }
+.badge-mod   { background: rgba(255, 107, 107, 0.2); color: rgb(255, 107, 107); }
+
+/* Pantalla ban */
+#banScreen {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 16px;
+}
+#banScreen > * + * { margin-top: 12px; }
+#banScreen h1 { color: rgb(255, 68, 68); }
+#banScreen p  { padding: 0; }
+
+/* Pantalla chat */
+#chat > * + * { margin-top: 8px; }
+
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.27);
+    border-top-color: rgb(255, 255, 255);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+</style>
+</head>
+
+<body>
+<main>
+	<div id="username">
+		<h1>OptiProjects Chat</h1>
+		<p>Reglas:
+			<br>- No spam
+			<br>- No links
+			<br>- No flood
+			<br>- No pedir optimizaciones
+			<br>- No imagenes pornográficas ni gore
+			<br>Y tampoco seas boludo obvio, respetá a los demás.
+		</p>
+		<div class="inputContainer">
+			<input id="usernameInput" placeholder="Username..." onkeydown="if(event.keyCode===13)setUsername()">
+			<button type="button" onclick="setUsername()" class="send">
+				<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+			</button>
+		</div>
+		<div class="inputContainer mt6">
+			<input id="tokenInput" type="password" placeholder="Token (solo si sos staff)..." onkeydown="if(event.keyCode===13)setUsername()">
+		</div>
+	</div>
+
+	<div id="banScreen">
+		<h1>🚫 Estás baneado</h1>
+		<p>Tu cuenta fue baneada y no podés participar en el chat.</p>
+	</div>
+
+	<div id="chat">
+		<ul id="messages"></ul>
+		<div id="chatErrorContainer">
+			<span>No se pudo enviar el mensaje:</span>
+			<span id="chatErrorDescription"></span>
+		</div>
+		<div class="inputContainer">
+			<input id="input" placeholder="Enviar mensaje..." onkeydown="if(event.keyCode===13)sendMessage()">
+			<button type="button" onclick="editUsername()" class="icon-btn">
+				<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 21a8 8 0 0 1 10.821-7.487" /><path d="M21.378 16.626a1 1 0 0 0-3.004-3.004l-4.01 4.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z" /><circle cx="10" cy="8" r="5" /></svg>
+			</button>
+			<button type="button" onclick="unbanUser()" id="unbanBtn" class="icon-btn" style="display:none" title="Desbanear usuario">
+				<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19.69 14a6.9 6.9 0 0 0 .31-2V5l-8-3-3.16 1.18"/><path d="M4.73 4.73 4 5v7c0 6 8 10 8 10a20.29 20.29 0 0 0 5.62-4.38"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
+			</button>
+			<button type="button" onclick="pickImage()" id="imageBtn" class="icon-btn" style="display:none" title="Enviar imagen (solo staff)">
+				<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+			</button>
+			<button type="button" onclick="sendMessage()" id="sendBtn" class="send">
+				<svg id="sendIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z" /><path d="m21.854 2.147-10.94 10.939" /></svg>
+				<div id="sendSpinner" class="spinner" style="display:none"></div>
+			</button>
+		</div>
+		<input type="file" id="imageInput" accept="image/png,image/jpeg,image/webp,image/gif" style="display:none">
+	</div>
+</main>
+
+<script>
+
+// ── Polyfills IE11 ───────────────────────────────────────────────────────────
+
+if (typeof Promise === "undefined") {
+	window.Promise = function(executor) {
+		var self = this;
+		self._state = 0; // 0 pendiente, 1 cumplida, 2 rechazada
+		self._value = undefined;
+		self._queue = [];
+
+		self._handle = function(h) {
+			var cb = self._state === 1 ? h.onFulfilled : h.onRejected;
+			if (typeof cb !== "function") {
+				(self._state === 1 ? h.resolve : h.reject)(self._value);
+				return;
+			}
+			try { h.resolve(cb(self._value)); }
+			catch (e) { h.reject(e); }
+		};
+
+		function settle(state, value) {
+			if (self._state) return;
+			self._state = state;
+			self._value = value;
+			setTimeout(function() {
+				var q = self._queue;
+				self._queue = [];
+				for (var i = 0; i < q.length; i++) self._handle(q[i]);
+			}, 0);
+		}
+
+		function reject(reason) { settle(2, reason); }
+
+		function resolve(value) {
+			if (self._state) return;
+			if (value && typeof value.then === "function") {
+				value.then(resolve, reject);
+				return;
+			}
+			settle(1, value);
+		}
+
+		try { executor(resolve, reject); } catch (e) { reject(e); }
+	};
+
+	window.Promise.prototype.then = function(onFulfilled, onRejected) {
+		var self = this;
+		return new Promise(function(resolve, reject) {
+			var h = { onFulfilled: onFulfilled, onRejected: onRejected, resolve: resolve, reject: reject };
+			if (self._state) setTimeout(function() { self._handle(h); }, 0);
+			else self._queue.push(h);
+		});
+	};
+
+	window.Promise.prototype["catch"] = function(onRejected) {
+		return this.then(undefined, onRejected);
+	};
+
+	window.Promise.resolve = function(v) {
+		return new Promise(function(res) { res(v); });
+	};
+	window.Promise.reject = function(v) {
+		return new Promise(function(_, rej) { rej(v); });
+	};
+}
+
+// fetch vía XMLHttpRequest
+if (typeof fetch === "undefined") {
+	window.fetch = function(url, options) {
+		options = options || {};
+		return new Promise(function(resolve, reject) {
+			var xhr = new XMLHttpRequest();
+			xhr.open(options.method || "GET", url, true);
+
+			var headers = options.headers || {};
+			for (var key in headers) {
+				if (headers.hasOwnProperty(key)) xhr.setRequestHeader(key, headers[key]);
+			}
+
+			xhr.onload = function() {
+				var text = xhr.responseText;
+				resolve({
+					ok: xhr.status >= 200 && xhr.status < 300,
+					status: xhr.status,
+					json: function() {
+						return new Promise(function(res, rej) {
+							try { res(JSON.parse(text)); } catch (e) { rej(e); }
+						});
+					},
+					text: function() { return Promise.resolve(text); }
+				});
+			};
+			xhr.onerror = function() { reject(new Error("Error de red")); };
+			xhr.send(options.body || null);
+		});
+	};
+}
+
+
+// ── Configuración ─────────────────────────────────────────────────────────────
+
+// local para testear padre
+//var API    = "http://127.0.0.1:7860";
+//var WS_URL = "ws://127.0.0.1:7860/websocket";
+
+var API    = "https://muybuenacuentajaja2-api.hf.space";
+var WS_URL = "wss://muybuenacuentajaja2-api.hf.space/websocket";
+
+var MAX_MESSAGES = 50;
+
+var chatContainer = document.getElementById("messages");
+var input         = document.getElementById("input");
+var usernameInput = document.getElementById("usernameInput");
+var tokenInput    = document.getElementById("tokenInput");
+var sendBtn       = document.getElementById("sendBtn");
+var sendIcon      = document.getElementById("sendIcon");
+var sendSpinner   = document.getElementById("sendSpinner");
+var unbanBtn      = document.getElementById("unbanBtn");
+var imageBtn      = document.getElementById("imageBtn");
+var imageInput    = document.getElementById("imageInput");
+
+var username     = "";
+var adminToken   = "";
+var sessionToken = "";
+var isAdmin      = false;
+var isMod        = false;
+var lastChat     = null;
+var isSending    = false;
+
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function el(tag, className, text) {
+	var e = document.createElement(tag);
+	if (className) e.className = className;
+	if (text !== undefined) e.textContent = text;
+	return e;
+}
+
+function postJson(path, body) {
+	return fetch(API + path, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify(body)
+	});
+}
+
+// Devuelve una Promise con el "detail" del error del servidor
+function readError(resp, fallback) {
+	return resp.json().then(function(json) {
+		return (json && json.detail) ? json.detail : fallback;
+	}, function() {
+		return fallback;
+	});
+}
+
+
+// ── UI ────────────────────────────────────────────────────────────────────────
+
+function setSendingState(loading) {
+	isSending = loading;
+	sendBtn.disabled = loading;
+	sendIcon.style.display    = loading ? "none" : "";
+	sendSpinner.style.display = loading ? "" : "none";
+}
+
+function showScreen(id) {
+	var screens = ["username", "banScreen", "chat"];
+	for (var i = 0; i < screens.length; i++) {
+		document.getElementById(screens[i]).style.display = (screens[i] === id) ? "flex" : "none";
+	}
+	if (id === "chat") scrollToBottom(true);
+}
+
+function hideError() {
+	document.getElementById("chatErrorContainer").style.display = "none";
+}
+
+function showError(detail) {
+	document.getElementById("chatErrorContainer").style.display = "flex";
+	document.getElementById("chatErrorDescription").textContent = detail;
+}
+
+function setPermissions(data) {
+	isAdmin = !!data && data.is_admin === true;
+	isMod   = !!data && data.is_admin === false;
+	unbanBtn.style.display = (isAdmin || isMod) ? "flex" : "none";
+	imageBtn.style.display = (isAdmin || isMod) ? "flex" : "none";
+}
+
+function scrollToBottom(force) {
+	requestAnimationFrame(function() {
+		if (force || chatContainer.scrollTop + chatContainer.clientHeight >= chatContainer.scrollHeight - 120) {
+			chatContainer.scrollTop = chatContainer.scrollHeight;
+		}
+	});
+}
+
+
+// ── Sesión ────────────────────────────────────────────────────────────────────
+
+function clearTokens() {
+	adminToken   = "";
+	sessionToken = "";
+}
+
+function resetSession() {
+	clearTokens();
+	setPermissions();
+}
+
+function login(name, token, session, data) {
+	username     = name;
+	adminToken   = token;
+	sessionToken = session;
+	setPermissions(data);
+	return loadHistory().then(function() {
+		showScreen("chat");
+	});
+}
+
+function editUsername() {
+	showScreen("username");
+	tokenInput.value = "";
+	resetSession();
+}
+
+function setUsername() {
+	var token       = tokenInput.value.trim();
+	var newUsername = usernameInput.value.trim();
+
+	if (token) {
+		// Login de staff
+		postJson("/verify_token", { token: token }).then(function(resp) {
+			if (!resp.ok) {
+				alert("Token inválido");
+				return;
+			}
+			return resp.json().then(function(data) {
+				usernameInput.value = data.username;
+				return login(data.username, token, "", data);
+			}, function() {
+				alert("Error al leer respuesta del servidor");
+			});
+		}, function() {
+			alert("Error de red al verificar token");
+		});
+		return;
+	}
+
+	// Usuario normal
+	if (newUsername.length < 1) return;
+	postJson("/verify", { username: newUsername }).then(function(resp) {
+		return resp.json().then(function(data) {
+			return data;
+		}, function() {
+			return null;
+		}).then(function(data) {
+			if (!resp.ok) {
+				alert((data && data.detail) ? data.detail : "No se pudo verificar la sesión");
+				return;
+			}
+			return login(newUsername, "", (data && data.session_token) ? data.session_token : "", null);
+		});
+	}, function() {
+		alert("Error de red al crear sesión");
+	});
+}
+
+
+// ── Historial ────────────────────────────────────────────────────────────────
+
+function loadHistory() {
+	lastChat = null;
+	chatContainer.innerHTML = "";
+	return fetch(API + "/history").then(function(resp) {
+		return resp.json();
+	}).then(function(json) {
+		json = json.slice(-MAX_MESSAGES);
+		for (var i = 0; i < json.length; i++) {
+			createMessage(json[i], false);
+		}
+		scrollToBottom(true);
+	}).catch(function() {});
+}
+
+
+// ── Mensajes ──────────────────────────────────────────────────────────────────
+
+function buildModActions(author, messageId) {
+	var wrap = el("span", "mod-actions");
+
+	var banBtn = el("button", "mod-btn ban", "ban");
+	banBtn.onclick = function() { banUser(author); };
+
+	var toBtn = el("button", "mod-btn timeout", "timeout");
+	toBtn.onclick = function() { timeoutUser(author); };
+
+	var delBtn = el("button", "mod-btn delete", "del");
+	delBtn.onclick = function() { deleteMessage(messageId); };
+
+	wrap.appendChild(banBtn);
+	wrap.appendChild(toBtn);
+	wrap.appendChild(delBtn);
+	return wrap;
+}
+
+function buildHeader(author, color, role, timestamp, messageId) {
+	var div  = document.createElement("div");
+	var left = document.createElement("span");
+
+	var authorSpan = el("span", null, author);
+	authorSpan.style.color = color;
+	left.appendChild(authorSpan);
+
+	if (role === "admin")    left.appendChild(el("span", "admin-badge badge-admin", "OPTI"));
+	else if (role === "mod") left.appendChild(el("span", "admin-badge badge-mod", "MOD"));
+
+	if (isAdmin || isMod) left.appendChild(buildModActions(author, messageId));
+
+	div.appendChild(left);
+	div.appendChild(el("span", null, timestamp));
+	return div;
+}
+
+function createMessage(message, enforceLimit) {
+	if (!message.id) {
+		message.id = "c" + new Date().getTime() + Math.random().toString(36).slice(2);
+	}
+	if (document.getElementById("msg-" + message.id)) return;
+
+	var timestamp = new Date(message.timestamp * 1000).toISOString().slice(11, 16);
+	var isFull    = lastChat !== message.author;
+
+	var li = document.createElement("li");
+	li.id = "msg-" + message.id;
+	li.dataset.author    = message.author;
+	li.dataset.color     = message.color;
+	li.dataset.role      = message.role || "";
+	li.dataset.timestamp = timestamp;
+	li.dataset.full      = isFull ? "true" : "false";
+
+	if (isFull) {
+		li.appendChild(buildHeader(message.author, message.color, message.role, timestamp, message.id));
+	} else {
+		li.style.marginTop = "2px";
+		if (isAdmin || isMod) {
+			var deleteBtn = el("button", "delete-btn", "del");
+			deleteBtn.onclick = function() { deleteMessage(message.id); };
+			li.appendChild(deleteBtn);
+		}
+	}
+
+	if (message.content) {
+		li.appendChild(el("span", null, message.content));
+	}
+
+	if (message.message_type === "image" && message.image_url) {
+		var img = el("img", "chat-image");
+		img.src = message.image_url;
+		img.alt = message.content || "imagen";
+		li.appendChild(img);
+	}
+
+	chatContainer.appendChild(li);
+
+	if (enforceLimit !== false && chatContainer.children.length > MAX_MESSAGES) {
+		removeMessage(chatContainer.firstElementChild);
+	}
+
+	lastChat = message.author;
+	scrollToBottom(false);
+}
+
+// Saca el <li>. Si era cabecera de un grupo, el siguiente mensaje del mismo autor pasa a tenerla.
+function removeMessage(li) {
+	var next = li.nextElementSibling;
+
+	if (li.dataset.full === "true" && next && next.dataset.full !== "true" &&
+		next.dataset.author === li.dataset.author) {
+
+		var oldBtn = next.querySelector(".delete-btn");
+		if (oldBtn) next.removeChild(oldBtn);
+
+		next.insertBefore(
+			buildHeader(next.dataset.author, next.dataset.color, next.dataset.role,
+				next.dataset.timestamp, next.id.replace("msg-", "")),
+			next.firstChild
+		);
+		next.style.marginTop = "";
+		next.dataset.full = "true";
+	}
+
+	chatContainer.removeChild(li);
+
+	var heads = chatContainer.querySelectorAll("li[data-full='true']");
+	lastChat = heads.length > 0 ? heads[heads.length - 1].dataset.author : null;
+}
+
+function deleteMessageFromUI(messageId) {
+	if (!messageId) return;
+	var li = document.getElementById("msg-" + messageId);
+	if (li) removeMessage(li);
+}
+
+
+// ── Enviar mensaje ────────────────────────────────────────────────────────────
+
+function handleSendError(detail) {
+	if (detail === "Estás baneado") {
+		clearTokens();
+		showScreen("banScreen");
+		return;
+	}
+
+	if (detail.indexOf("Sesi") === 0 && detail.indexOf("inv") !== -1) {
+		sessionToken = "";
+		if (!adminToken) {
+			showScreen("username");
+			alert("Tu sesion expiro o ya no es valida. Verifica de nuevo.");
+		}
+		return;
+	}
+
+	showError(detail);
+}
+
+function sendMessage() {
+	var content = input.value.trim();
+	if (content.length < 1 || isSending) return;
+
+	setSendingState(true);
+	hideError();
+
+	postJson("/send", {
+		username:      username,
+		content:       content,
+		admin_token:   adminToken,
+		session_token: sessionToken
+	}).then(function(resp) {
+		if (resp.ok) {
+			return resp.json().then(function(json) {
+				if (json && json.message) createMessage(json.message, true);
+				input.value = "";
+			}, function() {
+				input.value = "";
+			});
+		}
+		return readError(resp, "Error desconocido").then(handleSendError);
+	}, function() {
+		showError("Error de red, intentá de nuevo");
+	}).then(function() {
+		setSendingState(false);
+		scrollToBottom(false);
+	});
+}
+
+function pickImage() {
+	if ((!isAdmin && !isMod) || isSending) return;
+	imageInput.value = "";
+	imageInput.click();
+}
+
+imageInput.onchange = function() {
+	if (!isAdmin && !isMod) return;
+	if (!imageInput.files || imageInput.files.length < 1) return;
+
+	setSendingState(true);
+	hideError();
+
+	var formData = new FormData();
+	formData.append("admin_token", adminToken);
+	formData.append("content", input.value.trim());
+	formData.append("image", imageInput.files[0]);
+
+	fetch(API + "/send_image", {
+		method: "POST",
+		body: formData
+	}).then(function(resp) {
+		if (resp.ok) {
+			return resp.json().then(function(json) {
+				if (json && json.message) createMessage(json.message, true);
+				input.value = "";
+			}, function() {
+				input.value = "";
+			});
+		}
+		return readError(resp, "No se pudo enviar la imagen").then(showError);
+	}, function() {
+		showError("Error de red, intentá de nuevo");
+	}).then(function() {
+		setSendingState(false);
+	});
+};
+
+
+// ── Moderación ────────────────────────────────────────────────────────────────
+
+function modPost(path, body, okMessage) {
+	body.admin_token = adminToken;
+	postJson(path, body).then(function(resp) {
+		if (resp.ok) {
+			if (okMessage) alert(okMessage);
+			return;
+		}
+		return readError(resp, "desconocido").then(function(detail) {
+			alert("Error: " + detail);
+		});
+	}, function() {
+		alert("Error de red");
+	});
+}
+
+function banUser(target) {
+	if (!confirm("¿Banear a " + target + "?")) return;
+	modPost("/ban", { username: target }, target + " baneado");
+}
+
+function unbanUser() {
+	var target = prompt("Username a desbanear:");
+	if (!target || !target.trim()) return;
+	target = target.trim();
+	modPost("/unban", { username: target }, target + " desbaneado");
+}
+
+function timeoutUser(target) {
+	if (!confirm("¿Timeoutear a " + target + " por 5 minutos?")) return;
+	modPost("/timeout", { username: target }, target + " timeouteado por 5 minutos");
+}
+
+function deleteMessage(messageId) {
+	modPost("/delete_message", { message_id: messageId });
+}
+
+
+// ── WebSocket (reconecta solo) ────────────────────────────────────────────────
+
+var websocket;
+var wsOpenedBefore = false;
+
+function connect() {
+	websocket = new WebSocket(WS_URL);
+
+	websocket.onopen = function() {
+		// Al reconectar se pudieron perder mensajes: recargar historial
+		if (wsOpenedBefore) loadHistory();
+		wsOpenedBefore = true;
+	};
+
+	websocket.onmessage = function(event) {
+		try {
+			var data = JSON.parse(event.data);
+			if (data.type === "message") {
+				createMessage(data, true);
+			} else if (data.type === "delete") {
+				deleteMessageFromUI(data.message_id);
+			} else if (data.type === "clear") {
+				chatContainer.innerHTML = "";
+				lastChat = null;
+			}
+		} catch (e) {}
+	};
+
+	websocket.onclose = function() {
+		setTimeout(connect, 3000);
+	};
+}
+
+
+// ── Volver a la pestaña: scroll al final ──────────────────────────────────────
+
+document.addEventListener("visibilitychange", function() {
+	if (!document.hidden) scrollToBottom(true);
+});
+
+
+// ── Inicio ────────────────────────────────────────────────────────────────────
+
+connect();
+resetSession();
+showScreen("username");
+loadHistory();
+
+</script>
+</body>
+</html>
