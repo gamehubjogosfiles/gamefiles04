@@ -2,13 +2,12 @@
 (function () {
   'use strict';
 
-  if (window.location.hostname.toLowerCase() !== 'igu2012.github.io') return;
   if (window.__PES6_CHUNK_FETCH_INSTALLED__) return;
 
   var scriptUrl = document.currentScript && document.currentScript.src
     ? document.currentScript.src
     : new URL('js/pak-chunks.js', document.baseURI).href;
-  var repositoryBase = new URL('../../', scriptUrl);
+  var repositoryBase = new URL('https://igu2012.github.io/pes6web/');
   var virtualPak = new URL('../assets/pes6.pak', scriptUrl);
   var parts = [
     { file: 'part-000.bin', bytes: 94371840 },
