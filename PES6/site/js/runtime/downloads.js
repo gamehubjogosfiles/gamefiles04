@@ -80,8 +80,8 @@ function endBurst() {
 function onActivity(activeCount, retryingCount, totalBytes, networkCount, deliveredBytes) {
   currentActive = activeCount;
   retrying = retryingCount;
-  bytesReceived = totalBytes;
-  bytesDelivered = deliveredBytes || 0;
+  bytesReceived = Math.max(bytesReceived, Number(totalBytes) || 0);
+  bytesDelivered = Math.max(bytesDelivered, Number(deliveredBytes) || 0);
   if (window.PES6_LOADING) window.PES6_LOADING.updateGameData(
     Math.max(bytesReceived, bytesDelivered), window.PES6_PAK_TOTAL_BYTES || 0);
   PES6.PakDownload.setGameBusy(networkCount > 0 || retryingCount > 0);
@@ -107,6 +107,12 @@ function onActivity(activeCount, retryingCount, totalBytes, networkCount, delive
   } else if (!showTimer) {
     showTimer = setTimeout(onShowDelay, SHOW_DELAY_MS - (Date.now() - burstStart));
   }
+}
+
+function onNetworkProgress(totalBytes) {
+  bytesReceived = Math.max(bytesReceived, Number(totalBytes) || 0);
+  if (failed || warningShown || !isEnabled() || currentActive === 0 || noticeEl.hidden) return;
+  render();
 }
 
 // Retries of the pak metadata (js/data.js), before the game reads anything.
@@ -157,6 +163,7 @@ toggleEl.onchange = function () {
 
 Runtime.Downloads = {
   onActivity: onActivity,
+  onNetworkProgress: onNetworkProgress,
   onFetchError: onFetchError,
   showWarning: showWarning,
   clearWarning: clearWarning,

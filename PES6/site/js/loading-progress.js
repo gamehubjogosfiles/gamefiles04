@@ -8,6 +8,7 @@
   var pakTotal = Math.max(0, Number(window.PES6_PAK_TOTAL_BYTES) || 0);
   var pakMetadataBytes = 0;
   var lastLoadedBytes = 0;
+  var pakDownloadedBytes = 0;
   var failed = false;
   var engineStarted = false;
   var gameReady = false;
@@ -84,7 +85,8 @@
     if (gameReady || failed) return;
     if (Number(total) > 0) setPakTotal(total);
     var target = (window.PES6 && window.PES6.Core && window.PES6.Core.sources.pak) || '/assets/pes6.pak';
-    render(actionFor(target), loaded, pakTotal);
+    pakDownloadedBytes = Math.max(pakDownloadedBytes, Math.max(0, Number(loaded) || 0));
+    render(actionFor(target), pakDownloadedBytes, pakTotal);
   }
 
   function recordPakMetadata(bytes, total) {

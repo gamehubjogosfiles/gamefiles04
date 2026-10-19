@@ -19,6 +19,8 @@
     { file: 'part-003.bin', bytes: 68938677 }
   ];
   var totalBytes = parts.reduce(function (sum, part) { return sum + part.bytes; }, 0);
+  var downloadedBytes = 0;
+  var lastProgressUpdate = 0;
   var offsets = [];
   var offset = 0;
   parts.forEach(function (part) {
@@ -28,6 +30,24 @@
   });
 
   var originalFetch = window.fetch.bind(window);
+
+  function reportProgress(bytes) {
+    downloadedBytes += bytes;
+    var now = Date.now();
+    if (now - lastProgressUpdate < 100) return;
+    lastProgressUpdate = now;
+    try {
+      if (window.PES6_LOADING && typeof window.PES6_LOADING.updateGameData === 'function') {
+        window.PES6_LOADING.updateGameData(downloadedBytes, totalBytes);
+      }
+    } catch (error) {}
+    try {
+      var downloads = window.PES6 && window.PES6.Runtime && window.PES6.Runtime.Downloads;
+      if (downloads && typeof downloads.onNetworkProgress === 'function') {
+        downloads.onNetworkProgress(downloadedBytes);
+      }
+    } catch (error) {}
+  }
 
   function rangeFromHeader(value) {
     var match = /^bytes=(\d+)-(\d+)$/i.exec(value || '');
@@ -54,13 +74,41 @@
       if (contentRange && contentRange.indexOf(expectedRange) !== 0) {
         throw new Error('Invalid Content-Range from ' + part.file + ': ' + contentRange);
       }
-      return response.arrayBuffer().then(function (buffer) {
-        var bytes = new Uint8Array(buffer);
-        if (bytes.byteLength !== end - begin + 1) {
-          throw new Error('Short PAK chunk response from ' + part.file);
-        }
-        return bytes;
-      });
+      var expectedBytes = end - begin + 1;
+      if (!response.body || typeof response.body.getReader !== 'function') {
+        return response.arrayBuffer().then(function (buffer) {
+          var bytes = new Uint8Array(buffer);
+          reportProgress(bytes.byteLength);
+          if (bytes.byteLength !== expectedBytes) {
+            throw new Error('Short PAK chunk response from ' + part.file);
+          }
+          return bytes;
+        });
+      }
+      var reader = response.body.getReader();
+      var chunks = [];
+      var receivedBytes = 0;
+      function readNext() {
+        return reader.read().then(function (chunk) {
+          if (chunk.done) {
+            var bytes = new Uint8Array(receivedBytes);
+            var cursor = 0;
+            chunks.forEach(function (piece) {
+              bytes.set(piece, cursor);
+              cursor += piece.byteLength;
+            });
+            if (bytes.byteLength !== expectedBytes) {
+              throw new Error('Short PAK chunk response from ' + part.file);
+            }
+            return bytes;
+          }
+          chunks.push(chunk.value);
+          receivedBytes += chunk.value.byteLength;
+          reportProgress(chunk.value.byteLength);
+          return readNext();
+        });
+      }
+      return readNext();
     });
   }
 
