@@ -7,7 +7,10 @@
   var scriptUrl = document.currentScript && document.currentScript.src
     ? document.currentScript.src
     : new URL('js/pak-chunks.js', document.baseURI).href;
-  var repositoryBase = new URL('https://igu2012.github.io/pes6web/');
+  var repositoryBases = [
+    new URL('https://igu2012.github.io/pes6web/'),
+    new URL('https://raw.githubusercontent.com/Igu2012/pes6web/main/')
+  ];
   var virtualPak = new URL('../assets/pes6.pak', scriptUrl);
   var parts = [
     { file: 'part-000.bin', bytes: 94371840 },
@@ -32,8 +35,8 @@
     return { begin: Number(match[1]), end: Number(match[2]) };
   }
 
-  function chunkRange(part, begin, end, signal) {
-    var url = new URL('payload/pes6.pak.parts/' + part.file, repositoryBase).href;
+  function chunkRangeFrom(base, part, begin, end, signal) {
+    var url = new URL('payload/pes6.pak.parts/' + part.file, base).href;
     return originalFetch(url, {
       method: 'GET',
       headers: { Range: 'bytes=' + begin + '-' + end },
@@ -47,8 +50,8 @@
         throw error;
       }
       var expectedRange = 'bytes ' + begin + '-' + end + '/';
-      var contentRange = response.headers.get('Content-Range') || '';
-      if (contentRange.indexOf(expectedRange) !== 0) {
+      var contentRange = response.headers.get('Content-Range');
+      if (contentRange && contentRange.indexOf(expectedRange) !== 0) {
         throw new Error('Invalid Content-Range from ' + part.file + ': ' + contentRange);
       }
       return response.arrayBuffer().then(function (buffer) {
@@ -57,6 +60,15 @@
           throw new Error('Short PAK chunk response from ' + part.file);
         }
         return bytes;
+      });
+    });
+  }
+
+  function chunkRange(part, begin, end, signal) {
+    return chunkRangeFrom(repositoryBases[0], part, begin, end, signal).catch(function (primaryError) {
+      return chunkRangeFrom(repositoryBases[1], part, begin, end, signal).catch(function (fallbackError) {
+        fallbackError.primaryError = primaryError;
+        throw fallbackError;
       });
     });
   }
