@@ -15,6 +15,7 @@ var PAIR_BYTES = 18;
 
 var pair = makePair();
 var browserUrl = '';
+var configuredServer = '';
 var socket = null;
 var listeners = {};
 // Only the first close of a failure streak is logged; retries are quiet.
@@ -89,7 +90,8 @@ function open() {
 
 // Skips the backoff wait, e.g. when the player opens the Online tab.
 function retryNow() {
-  if (reconnectTimer) open();
+  if (!browserUrl && configuredServer) configure(configuredServer);
+  if (browserUrl && (!socket || reconnectTimer)) open();
 }
 
 // True between a close and the next retry: the relay refused or dropped it.
@@ -102,11 +104,17 @@ function isStarted() {
   return !!browserUrl;
 }
 
-function connect(server) {
+function configure(server) {
   var url = withPair(server, BROWSER_PATH);
-  if (!url || url === browserUrl) return;
+  if (!url) return;
+  configuredServer = server;
   browserUrl = url;
-  PES6.Core.pushLine('Room browser: ' + url.replace(/pair=[^&]+/, 'pair=***'), false);
+}
+
+function connect(server) {
+  if (server) configure(server);
+  if (!browserUrl) return;
+  if (!socket) PES6.Core.pushLine('Room browser: ' + browserUrl.replace(/pair=[^&]+/, 'pair=***'), false);
   open();
 }
 
@@ -128,6 +136,7 @@ PES6.Rooms = PES6.Rooms || {};
 PES6.Rooms.WAIT_ROOM = 'wait';
 PES6.Rooms.Link = {
   connect: connect,
+  configure: configure,
   gameServerUrl: gameServerUrl,
   isOpen: isOpen,
   isRetrying: isRetrying,

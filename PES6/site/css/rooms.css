@@ -49,3 +49,18 @@
     .rooms-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
     .rooms-actions .btn { flex: 1 1 auto; }
     .rooms-create { display: flex; flex-direction: column; gap: 8px; }
+    .rooms-offline {
+      display: flex; align-items: center; gap: 12px; margin: 8px 0; padding: 12px;
+      border: 1px solid var(--panel-edge); border-radius: 8px; background: rgba(255, 255, 255, 0.05);
+    }
+    .rooms-offline[hidden] { display: none; }
+    .rooms-offline-art { flex: 0 0 44px; width: 44px; height: 44px; color: var(--accent); }
+    .rooms-offline-copy { display: flex; flex: 1 1 auto; flex-direction: column; gap: 3px; min-width: 0; }
+    .rooms-offline-copy strong { font-size: 13px; }
+    .rooms-offline-copy span { color: var(--muted); font-size: 12px; }
+    .rooms-offline .btn { flex: 0 0 auto; }
+    @media (max-width: 480px) {
+      .rooms-offline { flex-wrap: wrap; }
+      .rooms-offline-art { flex-basis: 36px; width: 36px; height: 36px; }
+      .rooms-offline .btn { width: 100%; }
+    }

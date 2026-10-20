@@ -52,10 +52,10 @@
 
 <meta
   name="twitter:description"
-  content="Juega PES 6 Online de OptiJuegos directamente desde tu navegador en la web"
+  content="Juega PES 6 Web Online directamente desde tu navegador en la web"
 >
   <link rel="stylesheet" href="css/styles.css">
-  <link rel="stylesheet" href="css/rooms.css">
+  <link rel="stylesheet" href="css/rooms.css?v=20261020-lazy-relay1">
   <link rel="stylesheet" href="css/loading-ui.css?v=20261016-loading-transition-v2">
   <script>window.PES6_AUTO_START=true;try{localStorage.setItem("pes6.showLoadingNotice","0");localStorage.setItem("pes6.downloadFullPak","0");localStorage.setItem("pes6.commentary","0");}catch(e){}</script>
 
@@ -301,6 +301,18 @@
             <button class="btn small" id="roomsLeave">Salir de la sala</button>
           </div>
         </div>
+        <div class="rooms-offline" id="roomsOffline" hidden role="status" aria-live="polite">
+          <svg class="rooms-offline-art" viewBox="0 0 64 64" aria-hidden="true">
+            <path d="M7 22c14-13 36-13 50 0M15 30c10-9 24-9 34 0M23 38c5-4 13-4 18 0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="4"/>
+            <circle cx="32" cy="48" r="3.5" fill="currentColor"/>
+            <path d="M11 11l42 42" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="4"/>
+          </svg>
+          <div class="rooms-offline-copy">
+            <strong>Sin conexión con las salas online</strong>
+            <span>PES 6 sigue disponible sin conexión. Podés volver a intentar desde esta pestaña.</span>
+          </div>
+          <button class="btn small primary" id="roomsRetry" type="button">Reintentar</button>
+        </div>
         <div class="note" id="roomsStatus"></div>
         <div class="section-label">Crear sala</div>
         <form class="rooms-create" id="roomsCreateForm">
@@ -465,9 +477,9 @@
   <script src="js/ads.js"></script>
   <script src="js/core.js"></script>
   <script src="js/netserver.js"></script>
-  <script src="js/rooms/room_link.js"></script>
+  <script src="js/rooms/room_link.js?v=20261020-lazy-relay1"></script>
   <script src="js/rooms/player_name.js"></script>
-  <script src="js/rooms/room_browser.js?v=20261007-idle1"></script>
+  <script src="js/rooms/room_browser.js?v=20261020-lazy-relay1"></script>
   <script src="js/storage.js"></script>
   <script src="js/settings.js"></script>
   <script src="js/runtime/renderer.js"></script>
@@ -482,12 +494,12 @@
   <script src="js/bindings.js"></script>
   <script src="js/gamepads.js"></script>
   <script src="js/touch.js"></script>
-  <script src="js/loading-progress.js?v=20261019-pak-progress1"></script>
+  <script src="js/loading-progress.js?v=20261020-parent-progress1"></script>
 
 
 
   <script src="js/runtime/loader.js"></script>
-  <script src="js/runtime/debug.js"></script>
+  <script src="js/runtime/debug.js?v=20261020-lazy-relay1"></script>
   <script src="js/runtime/downloads.js"></script>
   <script src="js/runtime/module.js"></script>
   <script src="js/runtime/player.js?v=20261007-idle1"></script>

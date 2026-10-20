@@ -44,6 +44,8 @@ var tabEl = document.querySelector('[data-panel="panelOnline"]');
 var listEl = document.getElementById('roomsList');
 var countEl = document.getElementById('roomsCount');
 var statusEl = document.getElementById('roomsStatus');
+var offlineEl = document.getElementById('roomsOffline');
+var retryEl = document.getElementById('roomsRetry');
 var browseEl = document.getElementById('roomsBrowse');
 var joinEl = document.getElementById('roomsJoin');
 var backEl = document.getElementById('roomsBack');
@@ -82,7 +84,8 @@ var view = {
   // room-create request waiting for the game to enter Inalámbrico.
   pendingCreate: null,
   // Room joined by itself on connect, until its room-result arrives.
-  autoJoin: ''
+  autoJoin: '',
+  relayFailed: false
 };
 
 function readInvite() {
@@ -279,6 +282,10 @@ function renderRoom() {
 
 function renderCount() {
   if (!shown()) return;
+  if (view.relayFailed) {
+    countEl.textContent = 'Sin conexión';
+    return;
+  }
   countEl.textContent = view.players + (view.players === 1 ? ' jugador' : ' jugadores') + ' online' +
     (view.rtt !== null ? ' · tu ping: ' + view.rtt + ' ms' : '');
 }
@@ -293,6 +300,8 @@ function render() {
   backEl.hidden = !view.game.room;
   joinEl.disabled = !Link.isOpen() || !view.selected || view.selected === view.game.room;
   createEl.disabled = !Link.isOpen();
+  offlineEl.hidden = !view.relayFailed;
+  statusEl.hidden = view.relayFailed;
   statusEl.textContent = view.notice || baseStatus();
 }
 
@@ -410,6 +419,12 @@ createFormEl.onsubmit = function (event) {
   render();
 };
 document.getElementById('roomsRefresh').onclick = refreshNow;
+retryEl.onclick = function () {
+  view.relayFailed = false;
+  view.notice = '';
+  Link.retryNow();
+  render();
+};
 document.getElementById('roomsShowList').onclick = function () { setBrowsing(true); };
 backEl.onclick = function () { setBrowsing(false); };
 joinEl.onclick = function () { join(view.selected); };
@@ -564,6 +579,7 @@ Link.on('room-result', function (message) {
   render();
 });
 Link.on('open', function () {
+  view.relayFailed = false;
   // Initial snapshot is required even if the Online panel is closed, so
   // pair-based auto join and invitations work as soon as the game connects.
   refreshNow();
@@ -572,8 +588,15 @@ Link.on('open', function () {
   render();
 });
 Link.on('close', function () {
+  view.relayFailed = true;
   view.game = NO_GAME;
+  view.rooms = [];
   view.hasSnapshot = false;
+  view.selected = '';
+  view.expanded = '';
+  if (view.pendingInvite) view.pendingInvite.sent = false;
+  view.players = 0;
+  view.rtt = null;
   schedulePoll();
   render();
 });

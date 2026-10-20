@@ -18,6 +18,8 @@
   var userInteracted = false;
   var autoInputDispatching = false;
   var TRANSITION_GRACE_MS = 6500;
+  var lastParentMessage = '';
+  var lastParentMessageAt = 0;
 
   var hud = document.createElement('section');
   hud.id = 'loadingHud';
@@ -48,6 +50,16 @@
     return mb(value).toFixed(1) + ' MB';
   }
 
+  function reportGameHub(state, message) {
+    if (!window.parent || window.parent === window) return;
+    var text = String(message || '');
+    var now = Date.now();
+    if (state === 'loading' && (text === lastParentMessage || now - lastParentMessageAt < 240)) return;
+    lastParentMessage = text;
+    lastParentMessageAt = now;
+    try { window.parent.postMessage({ gamehub: 'game-status', state: state, message: text }, '*'); } catch (e) {}
+  }
+
   function actionFor(url) {
     try {
       var target = new URL(url || '/', window.location.href);
@@ -74,6 +86,7 @@
       progress.removeAttribute('value');
       amount.textContent = formatMB(current) + ' / —';
     }
+    reportGameHub('loading', title.textContent + ' · ' + amount.textContent);
   }
 
   function setPakTotal(total) {
@@ -102,6 +115,7 @@
     clearTimeout(autoBootTimer);
     clearInterval(gamepadTimer);
     var text = String(message || 'Unknown error');
+    reportGameHub('error', text);
     var guidance;
     if (/HTTP\s*404/i.test(text)) {
       guidance = 'PES 6 game data could not be read (HTTP 404).\n'
@@ -170,6 +184,7 @@
       if (failed || gameReady) return;
       gameReady = true;
       clearInterval(gamepadTimer);
+      reportGameHub('ready', '');
       hud.classList.add('is-complete');
       window.setTimeout(function () { hud.hidden = true; }, 260);
     }, TRANSITION_GRACE_MS);

@@ -24,9 +24,8 @@ function apply(module) {
   }
 
   // ?server= first, then pes6.ini [net] server, then config. "off" disables
-  // online. The game waits alone until the room list (Online tab) moves it,
-  // which it does by itself on connect (js/rooms/room_browser.js autoJoin);
-  // ?room= puts it straight into a room, for tests.
+  // online. Configure the paired relay now, but do not open its room-browser
+  // socket until the player opens Online; ?room= is still used for tests.
   var netServer = PES6.NetServer.configured(PES6.Settings.getIniValue(ini, 'net', 'server'));
   var netRoom = searchParams.get('room') || PES6.Rooms.WAIT_ROOM;
   if (netServer.toLowerCase() === 'off') netServer = '';
@@ -42,7 +41,7 @@ function apply(module) {
     }
     var rtcStun = searchParams.get('stun');
     if (rtcStun) module.pes6RtcStun = rtcStun.split(',').filter(function (url) { return url; });
-    PES6.Rooms.Link.connect(netServer);
+    PES6.Rooms.Link.configure(netServer);
     netServer = PES6.Rooms.Link.gameServerUrl(netServer);
     // ?snapshot_pacing=0 (off) or =adaptive: follower jitter buffer modes for
     // comparison runs; fixed (depth 1 at all times) otherwise.
