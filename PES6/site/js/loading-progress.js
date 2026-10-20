@@ -18,8 +18,6 @@
   var userInteracted = false;
   var autoInputDispatching = false;
   var TRANSITION_GRACE_MS = 6500;
-  var lastParentMessage = '';
-  var lastParentMessageAt = 0;
 
   var hud = document.createElement('section');
   hud.id = 'loadingHud';
@@ -51,12 +49,8 @@
   }
 
   function reportGameHub(state, message) {
-    if (!window.parent || window.parent === window) return;
+    if (state === 'loading' || !window.parent || window.parent === window) return;
     var text = String(message || '');
-    var now = Date.now();
-    if (state === 'loading' && (text === lastParentMessage || now - lastParentMessageAt < 240)) return;
-    lastParentMessage = text;
-    lastParentMessageAt = now;
     try { window.parent.postMessage({ gamehub: 'game-status', state: state, message: text }, '*'); } catch (e) {}
   }
 
@@ -86,7 +80,6 @@
       progress.removeAttribute('value');
       amount.textContent = formatMB(current) + ' / —';
     }
-    reportGameHub('loading', title.textContent + ' · ' + amount.textContent);
   }
 
   function setPakTotal(total) {
