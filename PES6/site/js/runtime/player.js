@@ -96,9 +96,9 @@ function startRuntime(choice) {
     }).then(function () {
       PES6.Core.elements.overlay.hidden = true;
       PES6.Core.elements.canvas.focus();
-      // A low/zero guest dispatch cap stalls the first game-data reads.
+      // Keep guest dispatch slices within a browser-friendly frame budget.
       if (typeof module._pes6_set_web_slice_budget === 'function')
-        module.ccall('pes6_set_web_slice_budget', null, ['number'], [10000000]);
+        module.ccall('pes6_set_web_slice_budget', null, ['number', 'number'], [10, 30]);
       module.callMain();
       Runtime.Background.sync();
 
