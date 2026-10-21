@@ -14404,6 +14404,7 @@ var wasmExports;
 
 // With async instantation wasmExports is assigned asynchronously when the
 // instance is received.
+ENV['PSPRECOMP_MAX_DISPATCHES'] = '10000000';
 createWasm().then(() => run());
 
 // end include: postamble.js
