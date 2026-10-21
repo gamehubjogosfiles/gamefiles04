@@ -8,8 +8,8 @@
     ? document.currentScript.src
     : new URL('js/pak-chunks.js', document.baseURI).href;
   var repositoryBases = [
-    new URL('https://igu2012.github.io/pes6web/'),
-    new URL('https://raw.githubusercontent.com/Igu2012/pes6web/main/')
+    new URL('https://raw.githubusercontent.com/Igu2012/pes6web/main/'),
+    new URL('https://igu2012.github.io/pes6web/')
   ];
   var virtualPak = new URL('../assets/pes6.pak', scriptUrl);
   var parts = [
@@ -19,6 +19,7 @@
     { file: 'part-003.bin', bytes: 68938677 }
   ];
   var totalBytes = parts.reduce(function (sum, part) { return sum + part.bytes; }, 0);
+  var partSizeChecks = Object.create(null);
   var downloadedBytes = 0;
   var lastProgressUpdate = 0;
   var offsets = [];
@@ -55,13 +56,32 @@
     return { begin: Number(match[1]), end: Number(match[2]) };
   }
 
+  function validatePartSize(base, part) {
+    var key = base.href + part.file;
+    if (!partSizeChecks[key]) {
+      var url = new URL('payload/pes6.pak.parts/' + part.file, base).href;
+      partSizeChecks[key] = originalFetch(url, { method: 'HEAD', cache: 'no-store' }).then(function (response) {
+        var actualBytes = Number(response.headers.get('Content-Length'));
+        if (!response.ok || actualBytes !== part.bytes) {
+          throw new Error('PAK chunk ' + part.file + ' has unexpected size ' + actualBytes + ' (expected ' + part.bytes + ')');
+        }
+      }).catch(function (error) {
+        delete partSizeChecks[key];
+        throw error;
+      });
+    }
+    return partSizeChecks[key];
+  }
+
   function chunkRangeFrom(base, part, begin, end, signal) {
     var url = new URL('payload/pes6.pak.parts/' + part.file, base).href;
-    return originalFetch(url, {
-      method: 'GET',
-      headers: { Range: 'bytes=' + begin + '-' + end },
-      cache: 'no-store',
-      signal: signal
+    return validatePartSize(base, part).then(function () {
+      return originalFetch(url, {
+        method: 'GET',
+        headers: { Range: 'bytes=' + begin + '-' + end },
+        cache: 'no-store',
+        signal: signal
+      });
     }).then(function (response) {
       if (response.status !== 206) {
         if (response.body) response.body.cancel().catch(function () {});
